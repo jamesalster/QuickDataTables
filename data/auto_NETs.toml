@@ -1,0 +1,6 @@
+
+[agree_1]
+"Strongly agree" = "NET_Agree"
+"Tend to agree" = "NET_Agree"
+"Tend to disagree" = "NET_Disagree"
+"Strongly disagree" = "NET_Disagree"

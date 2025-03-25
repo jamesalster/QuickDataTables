@@ -38,3 +38,24 @@ function RowVariable(df::DataFrame, row_var::Symbol, row_label::String, weights:
         weights,
     )
 end
+
+#Constructor passing the vector of strings directly, with their order
+function RowVariable(
+        row_values::Vector{String}, 
+        row_label::String, 
+        weights::Vector{Float64};
+        order::Vector{String} = sort(unique(row_values))
+    )
+
+    #Define 'type' of the variable
+    type = eltype(row_values)
+
+    return RowVariable{type}(
+        length(row_values),
+        Symbol(row_label),
+        row_values,
+        order,
+        row_label,
+        weights,
+    )
+end

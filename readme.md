@@ -9,6 +9,8 @@ The main exported function is **make_data_tables()**, which takes many arguments
 
 **read_data()** is also exported, reading a .sav or .csv file, for convenience.
 
+Automatic NET ('SUM') columns (as defined in `assets/auto_NETs.toml`) are added automatically, without user intervention.
+
 ##  Arguments to make_data_tables()
 
 - `input_data`: Survey data in DataFrame format, or string pointing to .csv or .sav file
@@ -32,7 +34,7 @@ These are the methods available to be passed to the `categorical_methods` and `n
     * `:n`: the number of cases
     * `:population_pct` (default): the weighted %, by column
     * `:n_pct`: the raw %, by column
-    * `:sigtest`: significance testing
+    * `:sigtest`: significance testing (not implemented)
 * **Numeric Methods**:
     * `:mean`: the weighted mean
     * `:median`: the weighted median
@@ -65,12 +67,11 @@ The internal functionality is broken down as follows:
 * **calculate.jl**: two functions, where the calculations take place.
     * *calculate_row()* : takes a RowVariable and CrossBreak and  method, calculates the individual tables by iterating through the crossbreak calling *calcuate_single_break()*, and then joins them together
     * *calculate_single_break()* : takes a RowVariable, method and single part of the crossbreak and actually performs the relevant calculation.
-* **make_data_tables.jl**: the main wrapper function. This takes all the info required, and calculates the tables iterating over the rows with *calculate_row()*, specifiying the apprioriate methods and formatting the final output.
+* **make_data_tables.jl**: the main wrapper function. This takes all the info required, and calculates the tables iterating over the rows with *calculate_row()*, specifiying the apprioriate methods and formatting the final output. This also handles the automatic NET logic.
 * **read_data.jl**: a simple convenience function for reading .csv or .sav files as a dataframe. Could add other filetypes in here.
 
 
 ## To-do
 
 * add significance testing
-* auto NETs
 * consider excel formatting (long term)

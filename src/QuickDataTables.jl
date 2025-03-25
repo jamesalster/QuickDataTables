@@ -6,6 +6,8 @@ module QuickDataTables
     using ReadStatTables
     using CSV
     using DataStructures
+    using TOML
+
 
     include("read_data.jl")
     include("crossbreak.jl")

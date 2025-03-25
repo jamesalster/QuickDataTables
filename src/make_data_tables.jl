@@ -99,11 +99,44 @@ function make_data_tables(;
         #Init variable info object
         row_table = RowVariable(input_data, row_var, get(data_labels_dict, row_var, string(row_var)), weights)
 
+        #Check variable type
         if typeof(row_table) <: RowVariable{String}
 
             for method in categorical_methods
+                #Calculate table and append to list, once for each method
                 row_df = calculate_row(row_table, crossbreak, method)
                 push!(tables, row_df)
+                
+                ### Auto NETs handled here, categorical only###
+
+                #Load data storage for them
+                autoNETs_path = joinpath(@__DIR__, "..", "data", "auto_NETs.toml")
+                autoNETs::Dict{String, Dict{String, String}} = TOML.parsefile(autoNETs_path)
+
+                #Search over dictonary for matches
+                for NET_dict in values(autoNETs) 
+
+                    if all(in(row_table.row_labels), keys(NET_dict))
+
+                        #if so, make new values and name, and define the order
+                        new_values = get.(Ref(NET_dict), row_table.row_values, "NET_Other")
+                        new_name = "$(row_table.row_var)_NET"
+                        value_order = [unique(values(NET_dict))..., "NET_Other"]
+                        #like this so it doesn't break if there's no NET_other
+                        intersect!(value_order, unique(new_values))
+
+                        #Use other RowVariable constructor
+                        NET_rowtable = RowVariable(new_values, new_name, row_table.weight; order = value_order)
+
+                        #Calculate the table and append
+                        row_df = calculate_row(NET_rowtable, crossbreak, method)
+                        push!(tables, row_df)
+
+                        break #Only one auto NET per variable
+                    end
+                end
+
+                ### End Auto NET logic ###
             end
 
         elseif typeof(row_table) <: RowVariable{Number}
@@ -131,7 +164,7 @@ function make_data_tables(;
     sort!(all_tables, [:_ROWVARIABLE, :_ROWLABELS, :_STATISTIC], 
         by = [x -> findfirst(==(x), unique(all_tables._ROWVARIABLE)), 
                 x -> findfirst(==(x), unique(all_tables._ROWLABELS)), 
-                x -> findfirst(==(x), ["population", "mean", "median", "sd", "n", "sigtest"])]
+                x -> findfirst(==(x), ["population_pct", "n_pct",  "mean", "median", "sd", "population", "n", "sigtest"])]
             )
 
     #Make rebased section

@@ -20,7 +20,6 @@ function calculate_single_break(
 
     valid_mask = .!ismissing.(t.row_values)
 
-
     #Ignore breaks if we want to
     if no_breaks
         break_dict = OrderedDict(:Total => trues(t.size))
