@@ -10,8 +10,7 @@
         categorical_methods::Vector{Symbol} = [:population],
         numeric_methods::Vector{Symbol} = [:mean, :sd],
         response_options_to_drop::Vector{String} = ["NotSelected"],
-        max_options::Int = 25,
-        pct_for_categorical::Bool = true
+        max_options::Int = 25
     ) -> DataFrame
 
 Creates analysis tables from survey data with crossbreaks (subgroups).
@@ -21,11 +20,12 @@ Creates analysis tables from survey data with crossbreaks (subgroups).
 - `crossbreaks`: Variables to use for subgroup analysis
 - `weight_column`: Column containing survey weights
 - `rows`: Variables to analyze (default value of nothing means do all columns)
-- `categorical_methods`: Statistics to calculate for categorical variables (e.g., [:population])
-- `numeric_methods`: Statistics to calculate for numeric variables (e.g., [:mean, :sd])
+- `categorical_methods`: Statistics to calculate for categorical variables (e.g., [:population_pct, :n, :sigtest])
+- `numeric_methods`: Statistics to calculate for numeric variables (e.g., [:mean, :sd, :median])
 - `response_options_to_drop`: Response values to exclude from results (e.g., "NotSelected")
 - `max_options`: Skip variables with more than this many unique values
-- `pct_for_categorical`: When true, shows categorical data as percentages
+
+See readme for a full list of available methods.
 
 # Returns
 DataFrame with analysis results organized by variable, response option, and statistic.
@@ -33,7 +33,7 @@ Includes rebased percentages across subgroups for easy comparison.
 
 # Example
 ```julia
-results = make_data_tables(
+results = make_data_tables(;
     input_data = survey_df,
     crossbreaks = [:gender, :age_group],
     weight_column = :weight
@@ -45,11 +45,10 @@ function make_data_tables(;
         crossbreaks::Vector{Symbol},
         weight_column::Union{Nothing, Symbol},
         rows::Union{Nothing, Vector{Symbol}} = nothing,
-        categorical_methods::Vector{Symbol} = [:population],
+        categorical_methods::Vector{Symbol} = [:population_pct],
         numeric_methods::Vector{Symbol} = [:mean, :sd],
         response_options_to_drop::Vector{String} = ["NotSelected"],
-        max_options::Int = 25,
-        pct_for_categorical::Bool = true
+        max_options::Int = 25
     )
 
     #Read input data if not already
@@ -98,14 +97,14 @@ function make_data_tables(;
         if typeof(row_table) <: RowVariable{String}
 
             for method in categorical_methods
-                row_df = calculate_row(row_table, crossbreak, method; pct = pct_for_categorical)
+                row_df = calculate_row(row_table, crossbreak, method)
                 push!(tables, row_df)
             end
 
         elseif typeof(row_table) <: RowVariable{Number}
 
             for method in numeric_methods
-                row_df = calculate_row(row_table, crossbreak, method; pct = false)
+                row_df = calculate_row(row_table, crossbreak, method)
                 push!(tables, row_df)
             end
 

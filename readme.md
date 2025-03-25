@@ -21,6 +21,22 @@ The main exported function is **make_data_tables()**, which takes many arguments
 - `max_options`: Skip variables with more than this many unique values
 - `pct_for_categorical`: When true, shows categorical data as percentages
 
+## Methods
+
+These are the methods available to be passed to the `categorical_methods` and `numeric_methods` fields. Multiple methods can be passed and multiple rows will be returned.
+
+* **Categorical Methods**:
+    * `:population`: the sum of the weights
+    * `:n`: the number of cases
+    * `:population_pct` (default): the weighted %, by column
+    * `:n_pct`: the raw %, by column
+    * `:sigtest`: significance testing
+* **Numeric Methods**:
+    * `:mean`: the weighted mean
+    * `:median`: the weighted median
+    * `:sd`: the weighted standard deviation
+    * `:n`: the number of cases
+
 ## Brief Example
 
 ```julia
@@ -29,7 +45,7 @@ using CSV
 
 filepath = "some_file.csv"
 
-tables = make_data_tables(
+tables = make_data_tables(;
     input_data = filepath,
     crossbreaks = [:A1, :A2, :A3],
     weight_column = :weight
@@ -55,4 +71,5 @@ The internal functionality is broken down as follows:
 
 * add SAV questions to output
 * add significance testing
+* auto NETs
 * consider excel formatting (long term)

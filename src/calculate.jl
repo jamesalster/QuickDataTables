@@ -6,9 +6,8 @@
 function calculate_single_break(
         t::RowVariable{T}, 
         crossbreak::Pair{Symbol, OrderedDict{Symbol, BitVector}}, 
-        method::Symbol; #population, n, sigtest
-        no_breaks::Bool = false,
-        pct::Bool = false
+        method::Symbol; #population, n, population_pct, n_pct, sigtest
+        no_breaks::Bool = false
     )::DataFrame where T
 
     break_name = first(crossbreak)
@@ -39,9 +38,9 @@ function calculate_single_break(
             if T <: String
                 idx = (t.row_values .== t.row_labels[i]) .& break_idx 
 
-                if method === :population
+                if method === :population || method === :population_pct
                     lvlcol[i] = sum(t.weight[idx])
-                elseif method === :n
+                elseif method === :n || method === :n_pct
                     lvlcol[i] = sum(idx)
                 elseif method === :sigtest
                     #Will have to be done below with pct
@@ -71,7 +70,7 @@ function calculate_single_break(
         end
 
         #Pct if necessary
-        if pct
+        if method === :population_pct || method === :n_pct
             lvlcol = lvlcol ./ sum(lvlcol)
         end
 
@@ -90,17 +89,17 @@ function calculate_single_break(
 end
 
 ### Calculate a whole row table
-function calculate_row(t::RowVariable, crossbreak::CrossBreak, method::Symbol; pct = false)::DataFrame
+function calculate_row(t::RowVariable, crossbreak::CrossBreak, method::Symbol)::DataFrame
 
     single_breaks = Vector{DataFrame}()
 
     #Total column - doesn't matter which crossbreak we pass
-    total_col = calculate_single_break(t, first(crossbreak.breaks), method; no_breaks = true, pct = pct)
+    total_col = calculate_single_break(t, first(crossbreak.breaks), method; no_breaks = true)
     push!(single_breaks, total_col)
 
     #Loop over making single break tables
     for break_dict in crossbreak.breaks
-        tab = calculate_single_break(t, break_dict, method; pct = pct)
+        tab = calculate_single_break(t, break_dict, method)
         push!(single_breaks, tab)
     end
 

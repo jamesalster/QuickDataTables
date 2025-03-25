@@ -21,7 +21,6 @@ function CrossBreak(df::DataFrame, break_vars::Vector{Symbol})
         if eltype(col) <: LabeledValue
             #SPSS order of levels
             break_levels = string.(values(sort(getvaluelabels(col))))
-            println(break_levels)
             #get indices as dict
             break_indices = index_as_bitvector(break_levels, string.(collect(valuelabels(col))))
             #assign to dict
