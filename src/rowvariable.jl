@@ -6,11 +6,12 @@ struct RowVariable{T} #T is the type
     row_var::Symbol
     row_values::Vector
     row_labels::Vector{AbstractString}
+    row_label::String
     weight::Vector{Float64}
 end
 
 #Table constructor - this is where we define table properties (in terms of the row)
-function RowVariable(df::DataFrame, row_var::Symbol, weights::Vector{Float64})
+function RowVariable(df::DataFrame, row_var::Symbol, row_label::String, weights::Vector{Float64})
     row_values = df[!,row_var]
 
     if eltype(row_values) <: Number
@@ -33,6 +34,7 @@ function RowVariable(df::DataFrame, row_var::Symbol, weights::Vector{Float64})
         row_var,
         row_values,
         row_labels,
+        row_label,
         weights,
     )
 end

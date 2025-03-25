@@ -1,14 +1,31 @@
 
-#Function to read data
+"""
+Reads data from a file.
 
-function read_data(filepath::String)
-    _, ext = splitext(filepath)
+Arguments:
+- `filepath`: {String} - Path to the data file in `.csv` or `.sav` format.
+
+Returns:
+- A tuple containing an array of unique identifier labels (`Vector{String}`) and 
+  a dataframe (`DataFrame`) with corresponding data variables, including column names.
+- Throws:
+    - {Error}: Data file is not recognized by the function (must be `.csv` or `.sav`)
+"""
+function read_data(filepath::String)::Tuple{Vector{String}, DataFrame}
+    _, ext = splitext(basename(filepath))
 
     if ext == ".sav"
-        return DataFrame(readstat(filepath))
+        stat_table = readstat(filepath)
+        df = DataFrame(stat_table)
+        #Get column labels
+        data_labels = colmetavalues(stat_table, :label)
+        data_labels = ifelse.(data_labels .== "", names(df), data_labels)
     elseif ext == ".csv"
-        return DataFrame(CSV.File(filepath))
+        df = DataFrame(CSV.File(filepath))
+        data_labels = names(df)
     else
         error("Data must be .csv or .sav format")
     end
+
+    return data_labels, df
 end

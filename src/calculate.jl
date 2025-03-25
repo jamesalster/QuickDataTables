@@ -15,7 +15,7 @@ function calculate_single_break(
 
     out_df = DataFrame()
     out_df[!,:_ROWLABELS] = t.row_labels
-    out_df[!,:_ROWVARIABLE] .= string(t.row_var)
+    out_df[!,:_ROWVARIABLE] .= string(t.row_label)
     out_df[!,:_STATISTIC] .= string(method)
 
     valid_mask = .!ismissing.(t.row_values)

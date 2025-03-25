@@ -21,6 +21,8 @@ The main exported function is **make_data_tables()**, which takes many arguments
 - `max_options`: Skip variables with more than this many unique values
 - `pct_for_categorical`: When true, shows categorical data as percentages
 
+**NB** that spss variable labels are read and placed in the tables only if input_data is provided as a string. Otherwise dataframe column names are used.
+
 ## Methods
 
 These are the methods available to be passed to the `categorical_methods` and `numeric_methods` fields. Multiple methods can be passed and multiple rows will be returned.
@@ -69,7 +71,6 @@ The internal functionality is broken down as follows:
 
 ## To-do
 
-* add SAV questions to output
 * add significance testing
 * auto NETs
 * consider excel formatting (long term)

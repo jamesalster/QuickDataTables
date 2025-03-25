@@ -31,6 +31,8 @@ See readme for a full list of available methods.
 DataFrame with analysis results organized by variable, response option, and statistic.
 Includes rebased percentages across subgroups for easy comparison.
 
+Question labels will be extracted from an .sav if passed in as a string, otherwise column names are used.
+
 # Example
 ```julia
 results = make_data_tables(;
@@ -51,10 +53,13 @@ function make_data_tables(;
         max_options::Int = 25
     )
 
-    #Read input data if not already
+    #Read input data if not already, and get labels
     if input_data isa String
-        input_data = read_data(input_data)
+        data_labels, input_data = read_data(input_data)
+    else 
+        data_labels = names(input_data)
     end
+    data_labels_dict = Dict(zip(propertynames(input_data), data_labels))
 
     #Make default weight if nothing passed
     if isnothing(weight_column)
@@ -92,7 +97,7 @@ function make_data_tables(;
         end
 
         #Init variable info object
-        row_table = RowVariable(input_data, row_var, weights)
+        row_table = RowVariable(input_data, row_var, get(data_labels_dict, row_var, string(row_var)), weights)
 
         if typeof(row_table) <: RowVariable{String}
 
