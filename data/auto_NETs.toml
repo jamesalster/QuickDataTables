@@ -11,6 +11,12 @@
 "Somewhat unfavorable" = "NET_unfavorable"
 "Very unfavorable" = "NET_unfavorable"
 
+[favourable_options]
+"Very favourable" = "NET_favourable"
+"Somewhat favourable" = "NET_favourable"
+"Somewhat unfavourable" = "NET_unfavourable"
+"Very unfavourable" = "NET_unfavourable"
+
 [agree_options]
 "Strongly agree" = "NET_agree"
 "Somewhat agree" = "NET_agree"
