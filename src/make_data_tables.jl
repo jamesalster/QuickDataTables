@@ -82,11 +82,25 @@ function make_data_tables(;
     #Define weight
     weights = input_data[!,weight_column]
 
+    #Check no missing weights
+    if any(ismissing, weights)
+        error("Missing weights are not supported, all cases must be valid")
+    end
+
     crossbreak = CrossBreak(input_data, crossbreaks)
 
-    #Calculate tables, looping over rows
+    #Calculate tables
     @info "Calculating tables..."
     tables = Vector{DataFrame}()
+
+    ## Make the 'tables' for population and sample n 
+    all_row = RowVariable(fill("all", length(weights)), "Whole Sample", weights)
+    for method in [:n, :population]
+        all_table = calculate_row(all_row, crossbreak, method)
+        push!(tables, all_table)
+    end
+
+    ##Loop over rows
 
     for row_var in rows
 
@@ -96,7 +110,7 @@ function make_data_tables(;
             continue
         end
 
-        #Init variable info object
+        #Init variable info object using dataframe constructor
         row_table = RowVariable(input_data, row_var, get(data_labels_dict, row_var, string(row_var)), weights)
 
         #Check variable type
