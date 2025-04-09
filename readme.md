@@ -34,7 +34,7 @@ These are the methods available to be passed to the `categorical_methods` and `n
     * `:n`: the number of cases
     * `:population_pct` (default): the weighted %, by column
     * `:n_pct`: the raw %, by column
-    * `:sigtest`: significance testing (not implemented)
+    * `:sigtest`: significance testing 
 * **Numeric Methods**:
     * `:mean`: the weighted mean
     * `:median`: the weighted median
@@ -73,5 +73,5 @@ The internal functionality is broken down as follows:
 
 ## To-do
 
-* add significance testing
+* add significance testing for numeric variables
 * consider excel formatting (long term)

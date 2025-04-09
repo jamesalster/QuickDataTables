@@ -12,6 +12,7 @@ module QuickDataTables
     include("read_data.jl")
     include("crossbreak.jl")
     include("rowvariable.jl")
+    include("sigtests.jl")
     include("calculate.jl")
     include("make_data_tables.jl")
 

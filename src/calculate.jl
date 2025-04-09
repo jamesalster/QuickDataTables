@@ -39,11 +39,8 @@ function calculate_single_break(
 
                 if method === :population || method === :population_pct
                     lvlcol[i] = sum(t.weight[idx])
-                elseif method === :n || method === :n_pct
+                elseif method === :n || method === :n_pct || method === :sigtest
                     lvlcol[i] = sum(idx)
-                elseif method === :sigtest
-                    #Will have to be done below with pct
-                    error("Sigtest method not implemented")
                 else
                     error("Method $method not implemented for categorical table")
                 end
@@ -58,6 +55,9 @@ function calculate_single_break(
                     levelcol[i] = std(t.row_values[idx], Weights(t.weight[idx]))
                 elseif method === :n
                     levelcol[i] = sum(idx)
+                elseif method === :sigtest
+                    #Will have to be done with raw vectors
+                    error("Sigtest method not implemented for numeric variables")
                 else 
                     error("Method $method not implemented for numeric table")
                 end
@@ -71,6 +71,13 @@ function calculate_single_break(
         #Pct if necessary
         if method === :population_pct || method === :n_pct
             lvlcol = lvlcol ./ sum(lvlcol)
+        #Sigtest if necessary
+        elseif T <: String && method === :sigtest
+            try
+                lvlcol = get_sig_differences_categorical(Int.(lvlcol))
+            catch
+                error("Error calculating significance for break: $(break_name) and row $lvl of variable: $(t.row_label)")
+            end
         end
 
         #assign into df
