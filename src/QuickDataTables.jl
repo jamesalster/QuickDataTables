@@ -7,6 +7,7 @@ module QuickDataTables
     using CSV
     using DataStructures
     using TOML
+    using ProgressBars
 
 
     include("read_data.jl")

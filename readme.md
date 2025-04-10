@@ -74,4 +74,5 @@ The internal functionality is broken down as follows:
 ## To-do
 
 * add significance testing for numeric variables
+* profile the whole thing
 * consider excel formatting (long term)

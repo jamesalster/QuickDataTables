@@ -118,7 +118,7 @@ function make_data_tables(;
 
     ##Loop over rows
 
-    for row_var in rows
+    for row_var in ProgressBar(rows)
 
         #Skip if  over max vars
         if row_var in exclude_vars
@@ -181,6 +181,8 @@ function make_data_tables(;
         end
     end
 
+    @info "Processing tables..."
+
     #Concatenate tables
     all_tables = vcat(tables...)
 
@@ -192,11 +194,25 @@ function make_data_tables(;
     select!(all_tables, label_cols, Not(label_cols))
 
     #Sort rows using these orders (neat trick)
+    #sort!(all_tables, [:_ROWVARIABLE, :_ROWLABELS, :_STATISTIC], 
+    #    by = [x -> findfirst(==(x), unique(all_tables._ROWVARIABLE)), 
+    #            x -> findfirst(==(x), unique(all_tables._ROWLABELS)), 
+    #            x -> findfirst(==(x), ["population_pct", "n_pct",  "mean", "median", "sd", "population", "n", "sigtest"])]
+    #        )
+    # Create dictionaries once, before sorting
+    row_var_order = Dict(val => i for (i, val) in enumerate(unique(all_tables._ROWVARIABLE)))
+    row_labels_order = Dict(val => i for (i, val) in enumerate(unique(all_tables._ROWLABELS)))
+
+    # Fixed mapping for statistics column
+    stat_order = Dict(
+        "population_pct" => 1, "n_pct" => 2, "mean" => 3, "median" => 4,
+        "sd" => 5, "population" => 6, "n" => 7, "sigtest" => 8
+    )
+
+    # Sort using dictionary lookups
     sort!(all_tables, [:_ROWVARIABLE, :_ROWLABELS, :_STATISTIC], 
-        by = [x -> findfirst(==(x), unique(all_tables._ROWVARIABLE)), 
-                x -> findfirst(==(x), unique(all_tables._ROWLABELS)), 
-                x -> findfirst(==(x), ["population_pct", "n_pct",  "mean", "median", "sd", "population", "n", "sigtest"])]
-            )
+        by = [x -> row_var_order[x], x -> row_labels_order[x], x -> stat_order[x]]
+    )
 
     #Make rebased section
     cols_to_rebase = setdiff(names(all_tables), [label_cols..., "Total"])
