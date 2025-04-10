@@ -40,6 +40,7 @@ These are the methods available to be passed to the `categorical_methods` and `n
     * `:median`: the weighted median
     * `:sd`: the weighted standard deviation
     * `:n`: the number of cases
+    * `:sigtest`: significance testing 
 
 ## Significance testing
 

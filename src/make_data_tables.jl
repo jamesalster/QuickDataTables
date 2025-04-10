@@ -67,9 +67,12 @@ function make_data_tables(;
         input_data.weight .= 1.0
     end
 
-    #Get vector of variables to drop
-    nunique_info = describe(input_data, :nunique)
-    exclude_vars = nunique_info.variable[something.(nunique_info.nunique, 0) .>= max_options]
+    #Get vector of variables to drop, character only
+    nunique_info = describe(input_data, :eltype, :nunique)
+    exclude_vars = nunique_info.variable[
+        (something.(nunique_info.nunique, 0) .>= max_options) .&
+        ((nunique_info.eltype .<: AbstractString) .| (nunique_info.eltype .<: LabeledValue))
+    ]
 
     #Get default rows if nothing passed
     if isnothing(rows)
