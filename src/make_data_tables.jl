@@ -99,6 +99,21 @@ function make_data_tables(;
         all_table = calculate_row(all_row, crossbreak, method)
         push!(tables, all_table)
     end
+    
+    ## if required, make the 'table' for column names
+    if :sigtest in numeric_methods || :sigtest in categorical_methods
+        sigtest_letters = string.(['A' + i - 1 for v in values(crossbreak.breaks) for i in 1:length(v)])
+        #NB not secure column name matching
+        sigtest_row_values = [
+            "", #Total column
+            "Column Comparison", #Row variable
+            "Column Letters", #Row labels
+            "sigtest", #Statistic
+            sigtest_letters...,
+            ]
+        sigtest_table = DataFrame(permutedims(sigtest_row_values), names(first(tables))) #pull column names from the ones we've already done
+        push!(tables, sigtest_table)
+    end
 
     ##Loop over rows
 
@@ -121,7 +136,7 @@ function make_data_tables(;
                 row_df = calculate_row(row_table, crossbreak, method)
                 push!(tables, row_df)
                 
-                ### Auto NETs handled here, categorical only###
+                ### Auto NETs handled here, categorical only ###
 
                 #Load data storage for them
                 autoNETs_path = joinpath(@__DIR__, "..", "data", "auto_NETs.toml")
@@ -172,7 +187,8 @@ function make_data_tables(;
     filter!(row -> .!in.(row._ROWLABELS, Ref(response_options_to_drop)), all_tables)
 
     #Reorder columns
-    select!(all_tables, "_ROWVARIABLE", Not("_ROWVARIABLE"))
+    label_cols = ["_ROWVARIABLE", "_ROWLABELS", "_STATISTIC"]
+    select!(all_tables, label_cols, Not(label_cols))
 
     #Sort rows using these orders (neat trick)
     sort!(all_tables, [:_ROWVARIABLE, :_ROWLABELS, :_STATISTIC], 
@@ -182,15 +198,22 @@ function make_data_tables(;
             )
 
     #Make rebased section
-    cols_to_rebase = setdiff(names(all_tables), ["_ROWVARIABLE", "_ROWLABELS", "_STATISTIC", "Total"])
+    cols_to_rebase = setdiff(names(all_tables), [label_cols..., "Total"])
 
     for col in cols_to_rebase
         newname = "$(col) (REBASED)"
+        #Get ids where sigtest is not in the table
+        idx = all_tables[!,:_STATISTIC] .!= "sigtest"
         try
-            col_rebased_raw = all_tables[!,col] ./ all_tables[!,:Total] .* 100
+            #calculate ignoring sigtest rows
+            col_rebased_raw = all_tables[idx,col] ./ all_tables[idx,:Total] .* 100
             col_rebased = ifelse.(isnan.(col_rebased_raw), missing, col_rebased_raw)
             col_rebased = round.(Union{Int64, Missing}, col_rebased)
-            all_tables[!,newname] = col_rebased
+            #reassemble column of correct type
+            new_col = Vector{Union{Int64, Missing}}(missing, size(all_tables, 1))
+            new_col[idx] = col_rebased
+            #add back into dataframe
+            all_tables[!,newname] = new_col
         catch e 
             @warn "Could not rebase column $col:" e
         end

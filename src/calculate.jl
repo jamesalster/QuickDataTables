@@ -13,11 +13,10 @@ function calculate_single_break(
     break_name = first(crossbreak)
     break_dict = last(crossbreak)
 
+    #Init dataframe
     out_df = DataFrame()
-    out_df[!,:_ROWLABELS] = t.row_labels
-    out_df[!,:_ROWVARIABLE] .= string(t.row_label)
-    out_df[!,:_STATISTIC] .= string(method)
-
+    
+    #Get non-missing values
     valid_mask = .!ismissing.(t.row_values)
 
     #Ignore breaks if we want to
@@ -27,7 +26,7 @@ function calculate_single_break(
 
     #For each level, make an empty column
     for lvl in keys(break_dict)
-        lvlcol = zeros(size(out_df, 1))
+        lvlcol = zeros(length(t.row_labels))
 
         break_idx = break_dict[lvl] .& valid_mask
 
@@ -71,13 +70,6 @@ function calculate_single_break(
         #Pct if necessary
         if method === :population_pct || method === :n_pct
             lvlcol = lvlcol ./ sum(lvlcol)
-        #Sigtest if necessary
-        elseif T <: String && method === :sigtest
-            try
-                lvlcol = get_sig_differences_categorical(Int.(lvlcol))
-            catch
-                error("Error calculating significance for break: $(break_name) and row $lvl of variable: $(t.row_label)")
-            end
         end
 
         #assign into df
@@ -90,6 +82,17 @@ function calculate_single_break(
         out_df[!,colname] = lvlcol
 
     end
+
+    #Sigtest the df if necessary
+    if method === :sigtest
+        out_df = get_sig_differences_categorical(out_df)
+    end
+
+    #Add the other columns we need
+    out_df[!,:_ROWLABELS] = t.row_labels
+    out_df[!,:_ROWVARIABLE] .= string(t.row_label)
+    out_df[!,:_STATISTIC] .= string(method)
+
 
     return out_df               
 end
