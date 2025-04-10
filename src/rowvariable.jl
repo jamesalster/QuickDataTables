@@ -3,6 +3,7 @@
 
 struct RowVariable{T} #T is the type
     size::Int
+    valid_cases::Int
     row_var::Symbol
     row_values::Vector
     row_labels::Vector{AbstractString}
@@ -31,6 +32,7 @@ function RowVariable(df::DataFrame, row_var::Symbol, row_label::String, weights:
 
     return RowVariable{type}(
         length(row_values),
+        length(row_values) - sum(ismissing.(row_values)),
         row_var,
         row_values,
         row_labels,
@@ -52,6 +54,7 @@ function RowVariable(
 
     return RowVariable{type}(
         length(row_values),
+        length(row_values) - sum(ismissing.(row_values)),
         Symbol(row_label),
         row_values,
         order,

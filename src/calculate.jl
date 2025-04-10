@@ -90,9 +90,9 @@ function calculate_single_break(
 
     #Add the other columns we need
     out_df[!,:_ROWLABELS] = t.row_labels
+    out_df[!,:_VARIABLE_N] .= t.valid_cases
     out_df[!,:_ROWVARIABLE] .= string(t.row_label)
     out_df[!,:_STATISTIC] .= string(method)
-
 
     return out_df               
 end
@@ -113,7 +113,7 @@ function calculate_row(t::RowVariable, crossbreak::CrossBreak, method::Symbol)::
     end
 
     #Join, there should be no missing
-    joined_table = reduce((x, y) -> outerjoin(x, y, on = [:_ROWVARIABLE, :_ROWLABELS, :_STATISTIC]), single_breaks)
+    joined_table = reduce((x, y) -> outerjoin(x, y, on = [:_ROWVARIABLE, :_ROWLABELS, :_VARIABLE_N, :_STATISTIC]), single_breaks)
     try
         disallowmissing!(joined_table)
     catch e

@@ -103,11 +103,12 @@ function make_data_tables(;
     ## if required, make the 'table' for column names
     if :sigtest in numeric_methods || :sigtest in categorical_methods
         sigtest_letters = string.(['A' + i - 1 for v in values(crossbreak.breaks) for i in 1:length(v)])
-        #NB not secure column name matching
+        #NB not secure column name matching, see calculate.jl
         sigtest_row_values = [
             "", #Total column
-            "Column Comparison", #Row variable
             "Column Letters", #Row labels
+            0, #Variable N
+            "Column Comparison", #Row variable
             "sigtest", #Statistic
             sigtest_letters...,
             ]
@@ -187,7 +188,7 @@ function make_data_tables(;
     filter!(row -> .!in.(row._ROWLABELS, Ref(response_options_to_drop)), all_tables)
 
     #Reorder columns
-    label_cols = ["_ROWVARIABLE", "_ROWLABELS", "_STATISTIC"]
+    label_cols = ["_ROWVARIABLE", "_ROWLABELS", "_VARIABLE_N", "_STATISTIC"]
     select!(all_tables, label_cols, Not(label_cols))
 
     #Sort rows using these orders (neat trick)
@@ -223,6 +224,7 @@ function make_data_tables(;
     rename!(all_tables, 
         :_ROWVARIABLE => :Variable,
         :_ROWLABELS => Symbol("Response Option"),
+        :_VARIABLE_N => Symbol("Variable n"),
         :_STATISTIC => :Statistic,
         )
 
