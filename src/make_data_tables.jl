@@ -116,6 +116,10 @@ function make_data_tables(;
         push!(tables, sigtest_table)
     end
 
+    #Load data storage for auto NETs
+    autoNETs_path = joinpath(@__DIR__, "..", "data", "auto_NETs.toml")
+    autoNETs::Dict{String, Dict{String, String}} = TOML.parsefile(autoNETs_path)
+
     ##Loop over rows
 
     for row_var in ProgressBar(rows)
@@ -138,10 +142,6 @@ function make_data_tables(;
                 push!(tables, row_df)
                 
                 ### Auto NETs handled here, categorical only ###
-
-                #Load data storage for them
-                autoNETs_path = joinpath(@__DIR__, "..", "data", "auto_NETs.toml")
-                autoNETs::Dict{String, Dict{String, String}} = TOML.parsefile(autoNETs_path)
 
                 #Search over dictonary for matches
                 for NET_dict in values(autoNETs) 
