@@ -11,6 +11,7 @@ function get_sig_differences_categorical(df::DataFrame)
 
     rows, cols = size(in_array)
 
+
     #If one col, we cant sigtest
     if cols == 1
         out_array .= " "
@@ -26,6 +27,9 @@ function get_sig_differences_categorical(df::DataFrame)
         return DataFrame(out_array, names(df))
     end
 
+    #Get population sizes
+    pop_sizes = dropdims(sum(in_array; dims = 1); dims = 1)
+
     for i in 1:rows
 
         #Init vector
@@ -37,14 +41,17 @@ function get_sig_differences_categorical(df::DataFrame)
         for i in eachindex(row_values)
             for j in i:length(row_values) #upper triangle only
 
-                #Get pair of values to test
-                test_pair = view(row_values, [i,j])
-
                 #Check no values are 0, if so, can't test
-                if all(test_pair .> 0)
+                if all(row_values[[i,j]] .> 0)
+
+                    #Get contingency table
+                    contingency_table = [
+                        row_values[i] row_values[j];
+                        pop_sizes[i]-row_values[i] pop_sizes[j]-row_values[j]
+                    ]
 
                     #Run test
-                    pval = pvalue(ChisqTest(test_pair))
+                    pval = pvalue(ChisqTest(contingency_table))
 
                     #Record result
                     if pval < 0.01
