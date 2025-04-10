@@ -1,8 +1,6 @@
 
 #### Functions to calculate significant differences
 
-using HypothesisTests
-
 function get_sig_differences_categorical(df::DataFrame)
 
     #Iterate over dataframe rows

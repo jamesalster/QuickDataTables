@@ -8,6 +8,7 @@ module QuickDataTables
     using DataStructures
     using TOML
     using ProgressBars
+    using HypothesisTests
 
 
     include("read_data.jl")

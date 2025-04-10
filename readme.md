@@ -67,6 +67,7 @@ The internal functionality is broken down as follows:
 * **calculate.jl**: two functions, where the calculations take place.
     * *calculate_row()* : takes a RowVariable and CrossBreak and  method, calculates the individual tables by iterating through the crossbreak calling *calcuate_single_break()*, and then joins them together
     * *calculate_single_break()* : takes a RowVariable, method and single part of the crossbreak and actually performs the relevant calculation.
+* **sigtests.jl**: functions for processing numeric tables and returning significance test tables, these are called by *calculate_single_break(; method = :sigtest)*
 * **make_data_tables.jl**: the main wrapper function. This takes all the info required, and calculates the tables iterating over the rows with *calculate_row()*, specifiying the apprioriate methods and formatting the final output. This also handles the automatic NET logic.
 * **read_data.jl**: a simple convenience function for reading .csv or .sav files as a dataframe. Could add other filetypes in here.
 
