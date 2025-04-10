@@ -41,6 +41,10 @@ These are the methods available to be passed to the `categorical_methods` and `n
     * `:sd`: the weighted standard deviation
     * `:n`: the number of cases
 
+## Significance testing
+
+This is done with column comparisons, where a capital letter indicates `p <0.01` and a small letter `p < 0.05`. For categorical variables, these are Chisq Tests, and for numeric variables, (approximate) Mann-Whitney U tests.
+
 ## Brief Example
 
 ```julia
@@ -58,7 +62,7 @@ tables = make_data_tables(;
 CSV.write("example_tables.csv", tables)
 ```
 
-## Src/
+## Internal Flow
 
 The internal functionality is broken down as follows:
 
@@ -67,13 +71,12 @@ The internal functionality is broken down as follows:
 * **calculate.jl**: two functions, where the calculations take place.
     * *calculate_row()* : takes a RowVariable and CrossBreak and  method, calculates the individual tables by iterating through the crossbreak calling *calcuate_single_break()*, and then joins them together
     * *calculate_single_break()* : takes a RowVariable, method and single part of the crossbreak and actually performs the relevant calculation.
-* **sigtests.jl**: functions for processing numeric tables and returning significance test tables, these are called by *calculate_single_break(; method = :sigtest)*
+* **sigtests.jl**: functions for processing numeric tables and returning significance test tables. The categorical one is called by *calculate_single_break(; method = :sigtest)*. The numeric one is called by a special version of the *calculate_single_break()* function which for the special needs of the numeric significance test - the logic for this kind of table is unique, the flow splits in *calculate_row()*.
 * **make_data_tables.jl**: the main wrapper function. This takes all the info required, and calculates the tables iterating over the rows with *calculate_row()*, specifiying the apprioriate methods and formatting the final output. This also handles the automatic NET logic.
 * **read_data.jl**: a simple convenience function for reading .csv or .sav files as a dataframe. Could add other filetypes in here.
 
-
 ## To-do
 
-* add significance testing for numeric variables
+* check against known correct tables
 * profile the whole thing
 * consider excel formatting (long term)

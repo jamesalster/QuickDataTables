@@ -169,7 +169,7 @@ function make_data_tables(;
                 ### End Auto NET logic ###
             end
 
-        elseif typeof(row_table) <: RowVariable{Number}
+        elseif typeof(row_table) <: RowVariable{Float64}
 
             for method in numeric_methods
                 row_df = calculate_row(row_table, crossbreak, method)

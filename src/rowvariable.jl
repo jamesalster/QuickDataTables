@@ -16,7 +16,8 @@ function RowVariable(df::DataFrame, row_var::Symbol, row_label::String, weights:
     row_values = df[!,row_var]
 
     if eltype(row_values) <: Number
-        error("Trying to create table column $row_var but values are numeric")
+        row_labels = [string(row_var)]
+        row_values = convert(Vector{Float64}, row_values)
     #Handle SPSS here
     elseif eltype(row_values) <: LabeledValue
         #In-order vector (getvaluelabels returns Dict of value => label)

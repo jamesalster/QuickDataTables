@@ -1,7 +1,7 @@
 
 ### Main table calculation functions ####
 
-### Main table calucaltion function
+### Main table caluclation function
 
 function calculate_single_break(
         t::RowVariable{T}, 
@@ -47,16 +47,16 @@ function calculate_single_break(
             elseif T <: Number
                 idx = break_idx 
                 if method === :mean
-                    levelcol[i] = mean(t.row_values[idx], Weights(t.weight[idx]))
+                    lvlcol[i] = mean(t.row_values[idx], Weights(t.weight[idx]))
                 elseif method === :median
-                    levelcol[i] = median(t.row_values[idx], Weights(t.weight[idx]))
+                    lvlcol[i] = median(t.row_values[idx], Weights(t.weight[idx]))
                 elseif method === :sd
-                    levelcol[i] = std(t.row_values[idx], Weights(t.weight[idx]))
+                    lvlcol[i] = std(t.row_values[idx], Weights(t.weight[idx]))
                 elseif method === :n
-                    levelcol[i] = sum(idx)
+                    lvlcol[i] = sum(idx)
                 elseif method === :sigtest
                     #Will have to be done with raw vectors
-                    error("Sigtest method not implemented for numeric variables")
+                    error("Numeric Sigtest flow is different, should not reach this point.")
                 else 
                     error("Method $method not implemented for numeric table")
                 end
@@ -98,17 +98,34 @@ function calculate_single_break(
 end
 
 ### Calculate a whole row table
-function calculate_row(t::RowVariable, crossbreak::CrossBreak, method::Symbol)::DataFrame
+function calculate_row(
+        t::RowVariable{T}, 
+        crossbreak::CrossBreak, 
+        method::Symbol)::DataFrame where T
 
     single_breaks = Vector{DataFrame}()
 
-    #Total column - doesn't matter which crossbreak we pass
-    total_col = calculate_single_break(t, first(crossbreak.breaks), method; no_breaks = true)
+    #Iterate over breaks, making each
+
+    #First, do Total column 
+    if T <: Float64 && method === :sigtest #special numeric sigtest handling
+        total_col = calculate_break_numeric_sigtest(t, first(crossbreak.breaks); no_breaks = true)
+    else
+        #doesn't matter which crossbreak we pass
+        total_col = calculate_single_break(t, first(crossbreak.breaks), method; no_breaks = true)
+    end
+
     push!(single_breaks, total_col)
+
+    #Then, do all the others
 
     #Loop over making single break tables
     for break_dict in crossbreak.breaks
-        tab = calculate_single_break(t, break_dict, method)
+        if T <: Number && method === :sigtest
+            tab = calculate_break_numeric_sigtest(t, break_dict)
+        else
+            tab = calculate_single_break(t, break_dict, method)
+        end
         push!(single_breaks, tab)
     end
 
@@ -122,5 +139,52 @@ function calculate_row(t::RowVariable, crossbreak::CrossBreak, method::Symbol)::
 
     return joined_table
 end
+
+##### Special numeric sigtest calculation function
+#For efficiency, the table is assembled by row in this case 
+#(iterating over crossbreak) rather than by column 
+#(since there's only one row for numeric variables)
+#Logic v different to main calculate row function
+
+function calculate_break_numeric_sigtest(
+        t::RowVariable, 
+        crossbreak::Pair{Symbol, OrderedDict{Symbol, BitVector}}; 
+        no_breaks::Bool = false
+    )::DataFrame
+
+    break_name = first(crossbreak)
+    break_dict = last(crossbreak)
+
+    #Get non-missing values
+    valid_mask = .!ismissing.(t.row_values)
+
+    #Ignore breaks if asked
+    if no_breaks
+        out_df = DataFrame(permutedims([" "]), ["Total"])
+    #Otherwise calculate sig test
+    else
+        #Make a dictionary of relevant samples for each level
+        lvl_values = Vector{Vector{Float64}}()
+        colnames = Vector{String}()
+        for lvl in keys(break_dict)
+            break_idx = break_dict[lvl] .& valid_mask
+            push!(lvl_values, t.row_values[break_idx])
+            push!(colnames, "$(break_name): $(lvl)")
+        end
+
+        sigtest_results = get_sig_differences_numeric(lvl_values)
+        out_df = DataFrame(permutedims(sigtest_results), colnames)
+    end
+
+    #Add the other columns we need for joining
+    out_df[!,:_ROWLABELS] = t.row_labels
+    out_df[!,:_VARIABLE_N] .= t.valid_cases
+    out_df[!,:_ROWVARIABLE] .= string(t.row_label)
+    out_df[!,:_STATISTIC] .= "sigtest"
+
+    return out_df
+end
+
+###
 
 export calculate_row

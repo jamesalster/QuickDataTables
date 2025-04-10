@@ -26,7 +26,7 @@ function CrossBreak(df::DataFrame, break_vars::Vector{Symbol})
             #assign to dict
             breaks[var] = break_indices
         else #Alphabetical order
-            break_levels[var] = sort(unique(col))
+            break_levels = sort(unique(col))
             break_indices = index_as_bitvector(break_levels, col)
             breaks[var] = break_indices
         end
