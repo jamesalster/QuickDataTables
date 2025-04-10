@@ -193,26 +193,26 @@ function make_data_tables(;
     label_cols = ["_ROWVARIABLE", "_ROWLABELS", "_VARIABLE_N", "_STATISTIC"]
     select!(all_tables, label_cols, Not(label_cols))
 
-    #Sort rows using these orders (neat trick)
-    #sort!(all_tables, [:_ROWVARIABLE, :_ROWLABELS, :_STATISTIC], 
-    #    by = [x -> findfirst(==(x), unique(all_tables._ROWVARIABLE)), 
-    #            x -> findfirst(==(x), unique(all_tables._ROWLABELS)), 
-    #            x -> findfirst(==(x), ["population_pct", "n_pct",  "mean", "median", "sd", "population", "n", "sigtest"])]
-    #        )
-    # Create dictionaries once, before sorting
-    row_var_order = Dict(val => i for (i, val) in enumerate(unique(all_tables._ROWVARIABLE)))
-    row_labels_order = Dict(val => i for (i, val) in enumerate(unique(all_tables._ROWLABELS)))
+    ##Sort, efficiently
 
-    # Fixed mapping for statistics column
+    #Make orders of how to sort statistics
     stat_order = Dict(
         "population_pct" => 1, "n_pct" => 2, "mean" => 3, "median" => 4,
         "sd" => 5, "population" => 6, "n" => 7, "sigtest" => 8
     )
-
-    # Sort using dictionary lookups
-    sort!(all_tables, [:_ROWVARIABLE, :_ROWLABELS, :_STATISTIC], 
-        by = [x -> row_var_order[x], x -> row_labels_order[x], x -> stat_order[x]]
-    )
+    
+    # Pre-compute all sort keys directly as table columns
+    all_tables.sort_key1 = indexin(all_tables._ROWVARIABLE, unique(all_tables._ROWVARIABLE))
+    all_tables.sort_key2 = indexin(all_tables._ROWLABELS, unique(all_tables._ROWLABELS))
+    all_tables.sort_key3 = [stat_order[x] for x in all_tables._STATISTIC]
+    
+    # Sort once using these pre-computed keys
+    sort!(all_tables, [:sort_key1, :sort_key2, :sort_key3])
+    
+    # Remove the temporary columns
+    select!(all_tables, Not([:sort_key1, :sort_key2, :sort_key3]))
+    
+    ## End efficient sort logic
 
     #Make rebased section
     cols_to_rebase = setdiff(names(all_tables), [label_cols..., "Total"])
