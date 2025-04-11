@@ -137,7 +137,7 @@ function make_data_tables(;
         row_table = RowVariable(input_data, row_var, get(data_labels_dict, row_var, string(row_var)), weights)
 
         #Check variable type
-        if typeof(row_table) <: RowVariable{String}
+        if typeof(row_table) <: RowVariable{Union{Missing, String}}
 
             for method in categorical_methods
                 #Calculate table and append to list, once for each method
@@ -172,7 +172,7 @@ function make_data_tables(;
                 ### End Auto NET logic ###
             end
 
-        elseif typeof(row_table) <: RowVariable{Float64}
+        elseif typeof(row_table) <: RowVariable{Union{Missing, Float64}}
 
             for method in numeric_methods
                 row_df = calculate_row(row_table, crossbreak, method)

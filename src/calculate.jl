@@ -33,7 +33,7 @@ function calculate_single_break(
         #work out which indices are relevant and sum the weights
         for i in eachindex(lvlcol) #for rows in table
             #Logic for type of element and also method as passed
-            if T <: String
+            if T <: Union{String, Missing}
                 idx = (t.row_values .== t.row_labels[i]) .& break_idx 
 
                 if method === :population || method === :population_pct
@@ -44,14 +44,15 @@ function calculate_single_break(
                     error("Method $method not implemented for categorical table")
                 end
 
-            elseif T <: Number
+            elseif T <: Union{Number, Missing}
                 idx = break_idx 
+                non_missing_values = convert(Vector{Float64}, t.row_values[idx])
                 if method === :mean
-                    lvlcol[i] = mean(t.row_values[idx], Weights(t.weight[idx]))
+                    lvlcol[i] = mean(non_missing_values, Weights(t.weight[idx]))
                 elseif method === :median
-                    lvlcol[i] = median(t.row_values[idx], Weights(t.weight[idx]))
+                    lvlcol[i] = median(non_missing_values, Weights(t.weight[idx]))
                 elseif method === :sd
-                    lvlcol[i] = std(t.row_values[idx], Weights(t.weight[idx]))
+                    lvlcol[i] = std(non_missing_values, Weights(t.weight[idx]))
                 elseif method === :n
                     lvlcol[i] = sum(idx)
                 elseif method === :sigtest
@@ -108,7 +109,7 @@ function calculate_row(
     #Iterate over breaks, making each
 
     #First, do Total column 
-    if T <: Float64 && method === :sigtest #special numeric sigtest handling
+    if T <: Union{Number, Missing} && method === :sigtest #special numeric sigtest handling
         total_col = calculate_break_numeric_sigtest(t, first(crossbreak.breaks); no_breaks = true)
     else
         #doesn't matter which crossbreak we pass
@@ -121,7 +122,7 @@ function calculate_row(
 
     #Loop over making single break tables
     for break_dict in crossbreak.breaks
-        if T <: Number && method === :sigtest
+        if T <: Union{Number, Missing} && method === :sigtest
             tab = calculate_break_numeric_sigtest(t, break_dict)
         else
             tab = calculate_single_break(t, break_dict, method)
