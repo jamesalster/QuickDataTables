@@ -82,14 +82,17 @@ function make_data_tables(;
         )
     end
 
-    #Define weight
-    weights = input_data[!,weight_column]
-
-    #Check no missing weights
-    if any(ismissing, weights)
-        error("Missing weights are not supported, all cases must be valid")
+    #Drop rows if weight is missing
+    if any(ismissing, input_data[!,weight_column])
+        missing_weights = ismissing.(input_data[!, weight_column])
+        @warn ("Dropping $(sum(missing_weights)) rows because of missing weights.")
+        input_data = input_data[.!missing_weights,:]
     end
 
+    #assign weight
+    weights = convert(Vector{Float64}, input_data[!,weight_column])
+
+    #create the crossbreak object
     crossbreak = CrossBreak(input_data, crossbreaks)
 
     #Calculate tables
