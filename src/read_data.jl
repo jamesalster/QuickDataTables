@@ -14,7 +14,7 @@ Returns:
 function read_data(filepath::String)::Tuple{Vector{String}, DataFrame}
     _, ext = splitext(basename(filepath))
 
-    if ext == ".sav"
+    if ext in [".sav", ".dta", ".sas7bdat", ".xpt"]
         stat_table = readstat(filepath)
         df = DataFrame(stat_table)
         #Get column labels
@@ -24,7 +24,7 @@ function read_data(filepath::String)::Tuple{Vector{String}, DataFrame}
         df = DataFrame(CSV.File(filepath))
         data_labels = names(df)
     else
-        error("Data must be .csv or .sav format")
+        error("Data must be .csv, .sav, .dta, .sas7bdat or .xpt format")
     end
 
     return data_labels, df
