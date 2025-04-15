@@ -39,6 +39,7 @@ These are the methods available to be passed to the `categorical_methods` and `n
     * `:mean`: the weighted mean
     * `:median`: the weighted median
     * `:sd`: the weighted standard deviation
+    * `:iqr`: the unweighted interquartile range
     * `:n`: the number of cases
     * `:sigtest`: significance testing 
 

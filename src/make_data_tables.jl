@@ -222,8 +222,8 @@ function make_data_tables(;
 
     #Make orders of how to sort statistics
     stat_order = Dict(
-        "population_pct" => 1, "n_pct" => 2, "mean" => 3, "median" => 4,
-        "sd" => 5, "population" => 6, "n" => 7, "sigtest" => 8
+        "population_pct" => 1, "n_pct" => 2, "mean" => 3, "sd" => 4, "median" => 5,
+        "iqr" => 6, "population" => 6, "n" => 7, "sigtest" => 8
     )
     
     # Pre-compute all sort keys directly as table columns

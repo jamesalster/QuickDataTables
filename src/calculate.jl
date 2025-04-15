@@ -53,6 +53,8 @@ function calculate_single_break(
                     lvlcol[i] = median(non_missing_values, Weights(t.weight[idx]))
                 elseif method === :sd
                     lvlcol[i] = std(non_missing_values, Weights(t.weight[idx]))
+                elseif method === :iqr
+                    lvlcol[i] = iqr(non_missing_values)
                 elseif method === :n
                     lvlcol[i] = sum(idx)
                 elseif method === :sigtest
