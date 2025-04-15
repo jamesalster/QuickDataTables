@@ -67,12 +67,31 @@ function make_data_tables(;
         input_data.weight .= 1.0
     end
 
-    #Get vector of variables to drop, character only
+    ## Get vector of variables to drop
+
+    #make dataframe
     nunique_info = describe(input_data, :eltype, :nunique)
-    exclude_vars = nunique_info.variable[
-        (something.(nunique_info.nunique, 0) .>= max_options) .&
-        ((nunique_info.eltype .<: AbstractString) .| (nunique_info.eltype .<: LabeledValue))
-    ]
+
+    # Identify strings and labeled values with too many unique values
+    too_many_categories = ((nunique_info.eltype .<: AbstractString) .| (nunique_info.eltype .<: LabeledValue)) .&
+                        (something.(nunique_info.nunique, 0) .>= max_options)
+
+    if length(too_many_categories) > 0
+	    @warn "Excluding the following variables for exceeding max_options:\n$(nunique_info[too_many_categories, [:variable, :nunique]])"
+    end
+
+    # Identify non-numeric, non-string, non-labeled types
+    other_types = .!((nunique_info.eltype .<: Union{Missing, Number}) .| 
+                    (nunique_info.eltype .<: Union{Missing, AbstractString}) .| 
+                    (nunique_info.eltype .<: LabeledValue))
+
+    if length(other_types) > 0
+        @warn "Excluding the following variables for having a type not number or categorical:\n$(nunique_info[other_types,[:variable, :eltype]])"
+    end
+
+    # Combine criteria for exclusion
+    exclude_vars = nunique_info.variable[too_many_categories .| other_types]
+
 
     #Get default rows if nothing passed
     if isnothing(rows)

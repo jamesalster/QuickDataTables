@@ -18,15 +18,17 @@ function RowVariable(df::DataFrame, row_var::Symbol, row_label::String, weights:
 
     if eltype(row_values) <: Union{Number, Missing}
         row_labels = [string(row_var)]
-        row_values = convert(Vector{Union{Float64, Missing}}, row_values)
+        row_values = convert(Vector{Union{Missing, Float64}}, row_values)
     #Handle SPSS here
     elseif eltype(row_values) <: Union{LabeledValue, Missing}
         #In-order vector (getvaluelabels returns Dict of value => label)
         row_labels = string.(values(sort(getvaluelabels(row_values))))
         row_values = collect(valuelabels(row_values))
+        row_values = convert(Vector{Union{Missing, String}}, row_values)
     else
         #Alphabetical for normal strings
         row_labels = sort(unique(row_values))
+        row_values = convert(Vector{Union{Missing, String}}, row_values)
     end
 
     #Define 'type' of the variable
