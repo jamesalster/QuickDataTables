@@ -15,8 +15,8 @@ function get_sig_differences_categorical(df::DataFrame)::DataFrame
     rows, cols = size(in_array)
 
 
-    #If one col, we cant sigtest
-    if cols == 1
+    #If one col, or less than 30 indivs total, we can't/shouldn't sigtest
+    if (cols == 1) || (sum(in_array) < 30)
         out_array .= " "
         return DataFrame(out_array, ["Total"])
     end
@@ -88,8 +88,8 @@ function get_sig_differences_numeric(row_values::Vector{Vector{Float64}})::Vecto
 
     cols = length(row_values) 
 
-    #If one col, we can't sigtest
-    if cols == 1
+    #If one col or less than 30 obs, we can't / shouldn't sigtest
+    if (cols == 1) || (sum(length.(row_values)) < 30)
         out_array .= " "
         return out_array
     end

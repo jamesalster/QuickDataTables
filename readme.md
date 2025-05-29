@@ -47,6 +47,8 @@ These are the methods available to be passed to the `categorical_methods` and `n
 
 This is done with column comparisons, where a capital letter indicates `p <0.01` and a small letter `p < 0.05`. For categorical variables, these are Chisq Tests, and for numeric variables, (approximate) Mann-Whitney U tests.
 
+Significance tests will not be applied where there are less than 30 individuals.
+
 ## Brief Example
 
 ```julia
