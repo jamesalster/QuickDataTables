@@ -76,7 +76,7 @@ function make_data_tables(;
     too_many_categories = ((nunique_info.eltype .<: AbstractString) .| (nunique_info.eltype .<: LabeledValue)) .&
                         (something.(nunique_info.nunique, 0) .>= max_options)
 
-    if length(too_many_categories) > 0
+    if sum(too_many_categories) > 0
 	    @warn "Excluding the following variables for exceeding max_options:\n$(nunique_info[too_many_categories, [:variable, :nunique]])"
     end
 
@@ -85,7 +85,7 @@ function make_data_tables(;
                     (nunique_info.eltype .<: Union{Missing, AbstractString}) .| 
                     (nunique_info.eltype .<: LabeledValue))
 
-    if length(other_types) > 0
+    if sum(other_types) > 0
         @warn "Excluding the following variables for having a type not number or categorical:\n$(nunique_info[other_types,[:variable, :eltype]])"
     end
 
