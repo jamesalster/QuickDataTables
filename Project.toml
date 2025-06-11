@@ -1,7 +1,7 @@
 name = "QuickDataTables"
 uuid = "6106ba8e-2f33-43f0-9461-e28fcbb98d08"
 author = "James Alster"
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"

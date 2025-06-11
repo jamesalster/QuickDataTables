@@ -16,9 +16,12 @@ function get_sig_differences_categorical(df::DataFrame)::DataFrame
 
 
     #If one col, or less than 30 indivs total, we can't/shouldn't sigtest
-    if (cols == 1) || (sum(in_array) < 30)
+    if cols == 1 
         out_array .= " "
         return DataFrame(out_array, ["Total"])
+    elseif sum(in_array) < 30
+        out_array .= " "
+        return DataFrame(out_array, names(df))
     end
 
     #Values for test must be Integer  
