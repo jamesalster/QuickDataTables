@@ -45,7 +45,9 @@ These are the methods available to be passed to the `categorical_methods` and `n
 
 ## Significance testing
 
-This is done with column comparisons, where a capital letter indicates `p <0.01` and a small letter `p < 0.05`. For categorical variables, these are Chisq Tests, and for numeric variables, (approximate) Mann-Whitney U tests.
+This is done with column comparisons, where a capital letter indicates `p <0.01` and a small letter `p < 0.05`. For categorical variables, these are Two-Sample Z Tests, and for numeric variables, (approximate) Mann-Whitney U tests. 
+
+Bonferroni correction is applied to significance tests, dividing the p-threshold by the number of comparisons tested.
 
 Significance tests will not be applied where there are less than 30 individuals.
 

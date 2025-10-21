@@ -61,11 +61,13 @@ function get_sig_differences_categorical(df::DataFrame)::DataFrame
                     #pval = pvalue(ChisqTest(contingency_table))
                     pval = twopropztest(row_values[i], pop_sizes[i], row_values[j], pop_sizes[j])
 
-                    #Record result
-                    if pval < 0.01
+                    # Record result
+                    # Bonferroni correction
+                    comparisons = cols * (cols-1) / 2
+                    if pval < (0.01 / comparisons)
                         push!(sig_differences[j], 'A' + i - 1)
                         push!(sig_differences[i], 'A' + j - 1)
-                    elseif pval < 0.05 
+                    elseif pval < (0.05 / comparisons)
                         push!(sig_differences[j], 'a' + i - 1)
                         push!(sig_differences[i], 'a' + j - 1)
                     end
@@ -109,11 +111,13 @@ function get_sig_differences_numeric(row_values::Vector{Vector{Float64}})::Vecto
             #Run test
             pval = pvalue(ApproximateMannWhitneyUTest(row_values[i],row_values[j]))
 
-            #Record result
-            if pval < 0.01
+            # Record result
+            # Bonferroni correction
+            comparisons = cols * (cols-1) / 2
+            if pval < (0.01 / comparisons)
                 push!(sig_differences[j], 'A' + i - 1)
                 push!(sig_differences[i], 'A' + j - 1)
-            elseif pval < 0.05
+            elseif pval < (0.05 / comparisons)
                 push!(sig_differences[j], 'a' + i - 1)
                 push!(sig_differences[i], 'a' + j - 1)
             end
