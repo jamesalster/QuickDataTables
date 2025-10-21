@@ -39,7 +39,7 @@ function get_sig_differences_categorical(df::DataFrame)::DataFrame
     for i in 1:rows
 
         #Init vector
-        sig_differences = [Vector{Char}() for i in 1:cols]
+        sig_differences = [Vector{Char}() for _ in 1:cols]
 
         row_values = view(in_array, i, :)
 
@@ -48,7 +48,7 @@ function get_sig_differences_categorical(df::DataFrame)::DataFrame
             for j in i:length(row_values) #upper triangle only
 
                 #Check no values are 0, if so, can't test
-                if all(row_values[[i,j]] .> 0)
+                if all(row_values[[i,j]] .> 0) & ((pop_sizes[i] + pop_sizes[j]) >= 30)
 
                     #Chisq - no longer used
                     #Get contingency table
@@ -61,13 +61,11 @@ function get_sig_differences_categorical(df::DataFrame)::DataFrame
                     #pval = pvalue(ChisqTest(contingency_table))
                     pval = twopropztest(row_values[i], pop_sizes[i], row_values[j], pop_sizes[j])
 
-                    # Bonferroni correction
-                    comparisons = cols * (cols-1) / 2
                     #Record result
-                    if pval < (0.01 / comparisons)
+                    if pval < 0.01
                         push!(sig_differences[j], 'A' + i - 1)
                         push!(sig_differences[i], 'A' + j - 1)
-                    elseif pval < (0.05 / comparisons)
+                    elseif pval < 0.05 
                         push!(sig_differences[j], 'a' + i - 1)
                         push!(sig_differences[i], 'a' + j - 1)
                     end
