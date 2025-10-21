@@ -50,20 +50,24 @@ function get_sig_differences_categorical(df::DataFrame)::DataFrame
                 #Check no values are 0, if so, can't test
                 if all(row_values[[i,j]] .> 0)
 
+                    #Chisq - no longer used
                     #Get contingency table
-                    contingency_table = [
-                        row_values[i] row_values[j];
-                        pop_sizes[i]-row_values[i] pop_sizes[j]-row_values[j]
-                    ]
+                    #contingency_table = [
+                    #    row_values[i] row_values[j];
+                    #    pop_sizes[i]-row_values[i] pop_sizes[j]-row_values[j]
+                    #]
 
                     #Run test
-                    pval = pvalue(ChisqTest(contingency_table))
+                    #pval = pvalue(ChisqTest(contingency_table))
+                    pval = twopropztest(row_values[i], pop_sizes[i], row_values[j], pop_sizes[j])
 
+                    # Bonferroni correction
+                    comparisons = cols * (cols-1) / 2
                     #Record result
-                    if pval < 0.01
+                    if pval < (0.01 / comparisons)
                         push!(sig_differences[j], 'A' + i - 1)
                         push!(sig_differences[i], 'A' + j - 1)
-                    elseif pval < 0.05
+                    elseif pval < (0.05 / comparisons)
                         push!(sig_differences[j], 'a' + i - 1)
                         push!(sig_differences[i], 'a' + j - 1)
                     end

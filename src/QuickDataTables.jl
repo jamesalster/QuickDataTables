@@ -9,11 +9,13 @@ module QuickDataTables
     using TOML
     using ProgressBars
     using HypothesisTests
+    using Distributions
 
 
     include("read_data.jl")
     include("crossbreak.jl")
     include("rowvariable.jl")
+    include("ztest.jl")
     include("sigtests.jl")
     include("calculate.jl")
     include("make_data_tables.jl")
