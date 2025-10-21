@@ -47,8 +47,8 @@ function get_sig_differences_categorical(df::DataFrame)::DataFrame
         for i in eachindex(row_values)
             for j in i:length(row_values) #upper triangle only
 
-                #Check no values are 0, if so, can't test
-                if all(row_values[[i,j]] .> 0) & ((pop_sizes[i] + pop_sizes[j]) >= 30)
+                # check we have enough sample to test
+                if (pop_sizes[i] + pop_sizes[j]) >= 30
 
                     #Chisq - no longer used
                     #Get contingency table
@@ -64,9 +64,10 @@ function get_sig_differences_categorical(df::DataFrame)::DataFrame
                     # Record result
                     # Bonferroni correction
                     comparisons = cols * (cols-1) / 2
+                    #comparisons = 1
                     if pval < (0.01 / comparisons)
-                        push!(sig_differences[j], 'A' + i - 1)
                         push!(sig_differences[i], 'A' + j - 1)
+                        push!(sig_differences[j], 'A' + i - 1)
                     elseif pval < (0.05 / comparisons)
                         push!(sig_differences[j], 'a' + i - 1)
                         push!(sig_differences[i], 'a' + j - 1)
