@@ -14,9 +14,8 @@ function get_sig_differences_categorical(df::DataFrame; correction::Bool=true)::
 
     rows, cols = size(in_array)
 
-
     #If one col, or less than 30 indivs total, we can't/shouldn't sigtest
-    if cols == 1 
+    if cols == 1
         out_array .= " "
         return DataFrame(out_array, ["Total"])
     elseif sum(in_array) < 30
@@ -34,7 +33,7 @@ function get_sig_differences_categorical(df::DataFrame; correction::Bool=true)::
     end
 
     #Get population sizes
-    pop_sizes = dropdims(sum(in_array; dims = 1); dims = 1)
+    pop_sizes = dropdims(sum(in_array; dims=1); dims=1)
 
     for i in 1:rows
 
@@ -59,7 +58,9 @@ function get_sig_differences_categorical(df::DataFrame; correction::Bool=true)::
 
                     #Run test
                     #pval = pvalue(ChisqTest(contingency_table))
-                    pval = twopropztest(row_values[i], pop_sizes[i], row_values[j], pop_sizes[j])
+                    pval = twopropztest(
+                        row_values[i], pop_sizes[i], row_values[j], pop_sizes[j]
+                    )
 
                     # Record result
                     # Bonferroni correction
@@ -77,7 +78,7 @@ function get_sig_differences_categorical(df::DataFrame; correction::Bool=true)::
         end
 
         #Combine into cell values
-        out_array[i,:] = [join(diffs, " ") for diffs in sig_differences]
+        out_array[i, :] = [join(diffs, " ") for diffs in sig_differences]
     end
 
     #Convert to dataframe
@@ -89,12 +90,14 @@ end
 #### Returns a vector of string comparisons
 #### These are assembled back into the dataframe in calculate.jl in calculate_break_numeric_sigtest() 
 
-function get_sig_differences_numeric(row_values::Vector{Vector{Float64}}; correction::Bool=true)::Vector{String}
+function get_sig_differences_numeric(
+    row_values::Vector{Vector{Float64}}; correction::Bool=true
+)::Vector{String}
 
     #Iterate over dataframe rows
     out_array = Vector{String}(undef, length(row_values))
 
-    cols = length(row_values) 
+    cols = length(row_values)
 
     #If one col or less than 30 obs, we can't / shouldn't sigtest
     if (cols == 1) || (sum(length.(row_values)) < 30)
@@ -110,7 +113,7 @@ function get_sig_differences_numeric(row_values::Vector{Vector{Float64}}; correc
         for j in i:length(row_values) #upper triangle only
 
             #Run test
-            pval = pvalue(ApproximateMannWhitneyUTest(row_values[i],row_values[j]))
+            pval = pvalue(ApproximateMannWhitneyUTest(row_values[i], row_values[j]))
 
             # Record result
             # Bonferroni correction
@@ -130,4 +133,3 @@ function get_sig_differences_numeric(row_values::Vector{Vector{Float64}}; correc
 
     return out_array
 end
-

@@ -4,19 +4,18 @@
 ### Main table caluclation function
 
 function calculate_single_break(
-        t::RowVariable{T}, 
-        crossbreak::Pair{Symbol, OrderedDict{Symbol, BitVector}}, 
-        method::Symbol; #population, n, population_pct, n_pct, sigtest
-        no_breaks::Bool = false,
-        sigtest_correction::Bool = true
-    )::DataFrame where T
-
+    t::RowVariable{T},
+    crossbreak::Pair{Symbol,OrderedDict{Symbol,BitVector}},
+    method::Symbol; #population, n, population_pct, n_pct, sigtest
+    no_breaks::Bool=false,
+    sigtest_correction::Bool=true,
+)::DataFrame where {T}
     break_name = first(crossbreak)
     break_dict = last(crossbreak)
 
     #Init dataframe
     out_df = DataFrame()
-    
+
     #Get non-missing values
     valid_mask = .!ismissing.(t.row_values)
 
@@ -34,8 +33,8 @@ function calculate_single_break(
         #work out which indices are relevant and sum the weights
         for i in eachindex(lvlcol) #for rows in table
             #Logic for type of element and also method as passed
-            if T <: Union{String, Missing}
-                idx = (t.row_values .== t.row_labels[i]) .& break_idx 
+            if T <: Union{String,Missing}
+                idx = (t.row_values .== t.row_labels[i]) .& break_idx
 
                 if method === :population || method === :population_pct
                     lvlcol[i] = sum(t.weight[idx])
@@ -45,8 +44,8 @@ function calculate_single_break(
                     error("Method $method not implemented for categorical table")
                 end
 
-            elseif T <: Union{Number, Missing}
-                idx = break_idx 
+            elseif T <: Union{Number,Missing}
+                idx = break_idx
                 non_missing_values = convert(Vector{Float64}, t.row_values[idx])
                 if method === :mean
                     lvlcol[i] = mean(non_missing_values, Weights(t.weight[idx]))
@@ -61,14 +60,13 @@ function calculate_single_break(
                 elseif method === :sigtest
                     #Will have to be done with raw vectors
                     error("Numeric Sigtest flow is different, should not reach this point.")
-                else 
+                else
                     error("Method $method not implemented for numeric table")
                 end
 
             else
                 error("No table method for type $(string(T)) implemented")
             end
-            
         end
 
         #Pct if necessary
@@ -83,8 +81,7 @@ function calculate_single_break(
             colname = "$(break_name): $(lvl)"
         end
 
-        out_df[!,colname] = lvlcol
-
+        out_df[!, colname] = lvlcol
     end
 
     #Sigtest the df if necessary
@@ -93,31 +90,39 @@ function calculate_single_break(
     end
 
     #Add the other columns we need
-    out_df[!,:_ROWLABELS] = t.row_labels
-    out_df[!,:_VARIABLE_N] .= t.valid_cases
-    out_df[!,:_ROWVARIABLE] .= string(t.row_label)
-    out_df[!,:_STATISTIC] .= string(method)
+    out_df[!, :_ROWLABELS] = t.row_labels
+    out_df[!, :_VARIABLE_N] .= t.valid_cases
+    out_df[!, :_ROWVARIABLE] .= string(t.row_label)
+    out_df[!, :_STATISTIC] .= string(method)
 
-    return out_df               
+    return out_df
 end
 
 ### Calculate a whole row table
 function calculate_row(
-        t::RowVariable{T}, 
-        crossbreak::CrossBreak, 
-        method::Symbol;
-        sigtest_correction::Bool=true)::DataFrame where T
-
+    t::RowVariable{T}, crossbreak::CrossBreak, method::Symbol; sigtest_correction::Bool=true
+)::DataFrame where {T}
     single_breaks = Vector{DataFrame}()
 
     #Iterate over breaks, making each
 
     #First, do Total column 
-    if T <: Union{Number, Missing} && method === :sigtest #special numeric sigtest handling
-        total_col = calculate_break_numeric_sigtest(t, first(crossbreak.breaks); no_breaks = true, sigtest_correction=sigtest_correction)
+    if T <: Union{Number,Missing} && method === :sigtest #special numeric sigtest handling
+        total_col = calculate_break_numeric_sigtest(
+            t,
+            first(crossbreak.breaks);
+            no_breaks=true,
+            sigtest_correction=sigtest_correction,
+        )
     else
         #doesn't matter which crossbreak we pass
-        total_col = calculate_single_break(t, first(crossbreak.breaks), method; no_breaks = true, sigtest_correction=sigtest_correction)
+        total_col = calculate_single_break(
+            t,
+            first(crossbreak.breaks),
+            method;
+            no_breaks=true,
+            sigtest_correction=sigtest_correction,
+        )
     end
 
     push!(single_breaks, total_col)
@@ -126,16 +131,24 @@ function calculate_row(
 
     #Loop over making single break tables
     for break_dict in crossbreak.breaks
-        if T <: Union{Number, Missing} && method === :sigtest
-            tab = calculate_break_numeric_sigtest(t, break_dict; sigtest_correction=sigtest_correction)
+        if T <: Union{Number,Missing} && method === :sigtest
+            tab = calculate_break_numeric_sigtest(
+                t, break_dict; sigtest_correction=sigtest_correction
+            )
         else
-            tab = calculate_single_break(t, break_dict, method; sigtest_correction=sigtest_correction)
+            tab = calculate_single_break(
+                t, break_dict, method; sigtest_correction=sigtest_correction
+            )
         end
         push!(single_breaks, tab)
     end
 
     #Join, there should be no missing
-    joined_table = reduce((x, y) -> outerjoin(x, y, on = [:_ROWVARIABLE, :_ROWLABELS, :_VARIABLE_N, :_STATISTIC]), single_breaks)
+    joined_table = reduce(
+        (x, y) ->
+            outerjoin(x, y; on=[:_ROWVARIABLE, :_ROWLABELS, :_VARIABLE_N, :_STATISTIC]),
+        single_breaks,
+    )
     try
         disallowmissing!(joined_table)
     catch e
@@ -152,12 +165,11 @@ end
 #Logic v different to main calculate row function
 
 function calculate_break_numeric_sigtest(
-        t::RowVariable, 
-        crossbreak::Pair{Symbol, OrderedDict{Symbol, BitVector}}; 
-        no_breaks::Bool = false,
-        sigtest_correction::Bool = true
-    )::DataFrame
-
+    t::RowVariable,
+    crossbreak::Pair{Symbol,OrderedDict{Symbol,BitVector}};
+    no_breaks::Bool=false,
+    sigtest_correction::Bool=true,
+)::DataFrame
     break_name = first(crossbreak)
     break_dict = last(crossbreak)
 
@@ -167,7 +179,7 @@ function calculate_break_numeric_sigtest(
     #Ignore breaks if asked
     if no_breaks
         out_df = DataFrame(permutedims([" "]), ["Total"])
-    #Otherwise calculate sig test
+        #Otherwise calculate sig test
     else
         #Make a dictionary of relevant samples for each level
         lvl_values = Vector{Vector{Float64}}()
@@ -178,15 +190,17 @@ function calculate_break_numeric_sigtest(
             push!(colnames, "$(break_name): $(lvl)")
         end
 
-        sigtest_results = get_sig_differences_numeric(lvl_values; correction=sigtest_correction)
+        sigtest_results = get_sig_differences_numeric(
+            lvl_values; correction=sigtest_correction
+        )
         out_df = DataFrame(permutedims(sigtest_results), colnames)
     end
 
     #Add the other columns we need for joining
-    out_df[!,:_ROWLABELS] = t.row_labels
-    out_df[!,:_VARIABLE_N] .= t.valid_cases
-    out_df[!,:_ROWVARIABLE] .= string(t.row_label)
-    out_df[!,:_STATISTIC] .= "sigtest"
+    out_df[!, :_ROWLABELS] = t.row_labels
+    out_df[!, :_VARIABLE_N] .= t.valid_cases
+    out_df[!, :_ROWVARIABLE] .= string(t.row_label)
+    out_df[!, :_STATISTIC] .= "sigtest"
 
     return out_df
 end

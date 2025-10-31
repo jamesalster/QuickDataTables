@@ -45,21 +45,21 @@ results = make_data_tables(;
 ```
 """
 function make_data_tables(;
-        input_data::Union{String, DataFrame},
-        crossbreaks::Vector{Symbol},
-        weight_column::Union{Nothing, Symbol},
-        rows::Union{Nothing, Vector{Symbol}} = nothing,
-        categorical_methods::Vector{Symbol} = [:population_pct],
-        numeric_methods::Vector{Symbol} = [:mean, :sd],
-        response_options_to_drop::Vector{String} = ["NotSelected"],
-        max_options::Int = 25,
-        bonferroni_correction::Bool=true
-    )
+    input_data::Union{String,DataFrame},
+    crossbreaks::Vector{Symbol},
+    weight_column::Union{Nothing,Symbol},
+    rows::Union{Nothing,Vector{Symbol}}=nothing,
+    categorical_methods::Vector{Symbol}=[:population_pct],
+    numeric_methods::Vector{Symbol}=[:mean, :sd],
+    response_options_to_drop::Vector{String}=["NotSelected"],
+    max_options::Int=25,
+    bonferroni_correction::Bool=true,
+)
 
     #Read input data if not already, and get labels
     if input_data isa String
         data_labels, input_data = read_data(input_data)
-    else 
+    else
         data_labels = names(input_data)
     end
     data_labels_dict = Dict(zip(propertynames(input_data), data_labels))
@@ -76,17 +76,19 @@ function make_data_tables(;
     nunique_info = describe(input_data, :eltype, :nunique)
 
     # Identify strings and labeled values with too many unique values
-    too_many_categories = ((nunique_info.eltype .<: AbstractString) .| (nunique_info.eltype .<: LabeledValue)) .&
-                        (something.(nunique_info.nunique, 0) .>= max_options)
+    too_many_categories =
+        (
+            (nunique_info.eltype .<: AbstractString) .|
+            (nunique_info.eltype .<: LabeledValue)
+        ) .& (something.(nunique_info.nunique, 0) .>= max_options)
 
     if sum(too_many_categories) > 0
-	    @warn "Excluding the following variables for exceeding max_options:\n$(nunique_info[too_many_categories, [:variable, :nunique]])"
+        @warn "Excluding the following variables for exceeding max_options:\n$(nunique_info[too_many_categories, [:variable, :nunique]])"
     end
 
     # Identify non-numeric, non-string, non-labeled types
-    other_types = .!((nunique_info.eltype .<: Union{Missing, Number}) .| 
-                    (nunique_info.eltype .<: Union{Missing, AbstractString}) .| 
-                    (nunique_info.eltype .<: LabeledValue))
+    other_types =
+        .!((nunique_info.eltype .<: Union{Missing,Number}) .| (nunique_info.eltype .<: Union{Missing,AbstractString}) .| (nunique_info.eltype .<: LabeledValue))
 
     if sum(other_types) > 0
         @warn "Excluding the following variables for having a type not number or categorical:\n$(nunique_info[other_types,[:variable, :eltype]])"
@@ -95,24 +97,22 @@ function make_data_tables(;
     # Combine criteria for exclusion
     exclude_vars = nunique_info.variable[too_many_categories .| other_types]
 
-
     #Get default rows if nothing passed
     if isnothing(rows)
         rows = setdiff(
-            propertynames(input_data), 
-            [:respondent_id, weight_column, exclude_vars...]
+            propertynames(input_data), [:respondent_id, weight_column, exclude_vars...]
         )
     end
 
     #Drop rows if weight is missing
-    if any(ismissing, input_data[!,weight_column])
+    if any(ismissing, input_data[!, weight_column])
         missing_weights = ismissing.(input_data[!, weight_column])
         @warn ("Dropping $(sum(missing_weights)) rows because of missing weights.")
-        input_data = input_data[.!missing_weights,:]
+        input_data = input_data[.!missing_weights, :]
     end
 
     #assign weight
-    weights = convert(Vector{Float64}, input_data[!,weight_column])
+    weights = convert(Vector{Float64}, input_data[!, weight_column])
 
     #create the crossbreak object
     crossbreak = CrossBreak(input_data, crossbreaks)
@@ -124,13 +124,17 @@ function make_data_tables(;
     ## Make the 'tables' for population and sample n 
     all_row = RowVariable(fill("all", length(weights)), "Whole Sample", weights)
     for method in [:n, :population]
-        all_table = calculate_row(all_row, crossbreak, method; sigtest_correction=bonferroni_correction)
+        all_table = calculate_row(
+            all_row, crossbreak, method; sigtest_correction=bonferroni_correction
+        )
         push!(tables, all_table)
     end
-    
+
     ## if required, make the 'table' for column names
     if :sigtest in numeric_methods || :sigtest in categorical_methods
-        sigtest_letters = string.(['A' + i - 1 for v in values(crossbreak.breaks) for i in 1:length(v)])
+        sigtest_letters = string.([
+            'A' + i - 1 for v in values(crossbreak.breaks) for i in 1:length(v)
+        ])
         #NB not secure column name matching, see calculate.jl
         sigtest_row_values = [
             "", #Total column
@@ -139,14 +143,14 @@ function make_data_tables(;
             "Column Comparison", #Row variable
             "sigtest", #Statistic
             sigtest_letters...,
-            ]
+        ]
         sigtest_table = DataFrame(permutedims(sigtest_row_values), names(first(tables))) #pull column names from the ones we've already done
         push!(tables, sigtest_table)
     end
 
     #Load data storage for auto NETs
     autoNETs_path = joinpath(@__DIR__, "..", "data", "auto_NETs.toml")
-    autoNETs::Dict{String, Dict{String, String}} = TOML.parsefile(autoNETs_path)
+    autoNETs::Dict{String,Dict{String,String}} = TOML.parsefile(autoNETs_path)
 
     ##Loop over rows
 
@@ -159,21 +163,23 @@ function make_data_tables(;
         end
 
         #Init variable info object using dataframe constructor
-        row_table = RowVariable(input_data, row_var, get(data_labels_dict, row_var, string(row_var)), weights)
+        row_table = RowVariable(
+            input_data, row_var, get(data_labels_dict, row_var, string(row_var)), weights
+        )
 
         #Check variable type
-        if typeof(row_table) <: RowVariable{Union{Missing, String}}
-
+        if typeof(row_table) <: RowVariable{Union{Missing,String}}
             for method in categorical_methods
                 #Calculate table and append to list, once for each method
-                row_df = calculate_row(row_table, crossbreak, method; sigtest_correction=bonferroni_correction)
+                row_df = calculate_row(
+                    row_table, crossbreak, method; sigtest_correction=bonferroni_correction
+                )
                 push!(tables, row_df)
-                
+
                 ### Auto NETs handled here, categorical only ###
 
                 #Search over dictonary for matches
-                for NET_dict in values(autoNETs) 
-
+                for NET_dict in values(autoNETs)
                     if all(in(row_table.row_labels), keys(NET_dict))
 
                         #if so, make new values and name, and define the order
@@ -184,10 +190,17 @@ function make_data_tables(;
                         intersect!(value_order, unique(new_values))
 
                         #Use other RowVariable constructor
-                        NET_rowtable = RowVariable(new_values, new_name, row_table.weight; order = value_order)
+                        NET_rowtable = RowVariable(
+                            new_values, new_name, row_table.weight; order=value_order
+                        )
 
                         #Calculate the table and append
-                        row_df = calculate_row(NET_rowtable, crossbreak, method; sigtest_correction=bonferroni_correction)
+                        row_df = calculate_row(
+                            NET_rowtable,
+                            crossbreak,
+                            method;
+                            sigtest_correction=bonferroni_correction,
+                        )
 
                         push!(tables, row_df)
 
@@ -198,10 +211,11 @@ function make_data_tables(;
                 ### End Auto NET logic ###
             end
 
-        elseif typeof(row_table) <: RowVariable{Union{Missing, Float64}}
-
+        elseif typeof(row_table) <: RowVariable{Union{Missing,Float64}}
             for method in numeric_methods
-                row_df = calculate_row(row_table, crossbreak, method; sigtest_correction=bonferroni_correction)
+                row_df = calculate_row(
+                    row_table, crossbreak, method; sigtest_correction=bonferroni_correction
+                )
                 push!(tables, row_df)
             end
 
@@ -226,21 +240,28 @@ function make_data_tables(;
 
     #Make orders of how to sort statistics
     stat_order = Dict(
-        "population_pct" => 1, "n_pct" => 2, "mean" => 3, "sd" => 4, "median" => 5,
-        "iqr" => 6, "population" => 6, "n" => 7, "sigtest" => 8
+        "population_pct" => 1,
+        "n_pct" => 2,
+        "mean" => 3,
+        "sd" => 4,
+        "median" => 5,
+        "iqr" => 6,
+        "population" => 6,
+        "n" => 7,
+        "sigtest" => 8,
     )
-    
+
     # Pre-compute all sort keys directly as table columns
     all_tables.sort_key1 = indexin(all_tables._ROWVARIABLE, unique(all_tables._ROWVARIABLE))
     all_tables.sort_key2 = indexin(all_tables._ROWLABELS, unique(all_tables._ROWLABELS))
     all_tables.sort_key3 = [stat_order[x] for x in all_tables._STATISTIC]
-    
+
     # Sort once using these pre-computed keys
     sort!(all_tables, [:sort_key1, :sort_key2, :sort_key3])
-    
+
     # Remove the temporary columns
     select!(all_tables, Not([:sort_key1, :sort_key2, :sort_key3]))
-    
+
     ## End efficient sort logic
 
     #Make rebased section
@@ -249,29 +270,30 @@ function make_data_tables(;
     for col in cols_to_rebase
         newname = "$(col) (REBASED)"
         #Get ids where sigtest is not in the table
-        idx = all_tables[!,:_STATISTIC] .!= "sigtest"
+        idx = all_tables[!, :_STATISTIC] .!= "sigtest"
         try
             #calculate ignoring sigtest rows
-            col_rebased_raw = all_tables[idx,col] ./ all_tables[idx,:Total] .* 100
+            col_rebased_raw = all_tables[idx, col] ./ all_tables[idx, :Total] .* 100
             col_rebased = ifelse.(isnan.(col_rebased_raw), missing, col_rebased_raw)
-            col_rebased = round.(Union{Int64, Missing}, col_rebased)
+            col_rebased = round.(Union{Int64,Missing}, col_rebased)
             #reassemble column of correct type
-            new_col = Vector{Union{Int64, Missing}}(missing, size(all_tables, 1))
+            new_col = Vector{Union{Int64,Missing}}(missing, size(all_tables, 1))
             new_col[idx] = col_rebased
             #add back into dataframe
-            all_tables[!,newname] = new_col
-        catch e 
+            all_tables[!, newname] = new_col
+        catch e
             @warn "Could not rebase column $col:" e
         end
     end
 
     #Rename
-    rename!(all_tables, 
+    rename!(
+        all_tables,
         :_ROWVARIABLE => :Variable,
         :_ROWLABELS => Symbol("Response Option"),
         :_VARIABLE_N => Symbol("Variable n"),
         :_STATISTIC => :Statistic,
-        )
+    )
 
     return all_tables
 end

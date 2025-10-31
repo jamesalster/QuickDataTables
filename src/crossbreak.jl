@@ -3,7 +3,7 @@
 
 #Dict of colnames, each a dict of col values and then indices in the df
 struct CrossBreak
-    breaks::OrderedDict{Symbol, OrderedDict{Symbol, BitVector}}
+    breaks::OrderedDict{Symbol,OrderedDict{Symbol,BitVector}}
 end
 
 #Helper function
@@ -13,16 +13,17 @@ end
 
 #Outer constructor, processing SPSS info
 function CrossBreak(df::DataFrame, break_vars::Vector{Symbol})
-    
-    breaks = OrderedDict{Symbol, OrderedDict{Symbol, Vector{Int}}}()
+    breaks = OrderedDict{Symbol,OrderedDict{Symbol,Vector{Int}}}()
 
     for var in break_vars
-        col = df[!,var]
+        col = df[!, var]
         if eltype(col) <: LabeledValue
             #SPSS order of levels
             break_levels = string.(values(sort(getvaluelabels(col))))
             #get indices as dict
-            break_indices = index_as_bitvector(break_levels, string.(collect(valuelabels(col))))
+            break_indices = index_as_bitvector(
+                break_levels, string.(collect(valuelabels(col)))
+            )
             #assign to dict
             breaks[var] = break_indices
         else #Alphabetical order

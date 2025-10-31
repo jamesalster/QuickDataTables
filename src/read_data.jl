@@ -11,7 +11,7 @@ Returns:
 - Throws:
     - {Error}: Data file is not recognized by the function (must be `.csv` or `.sav`)
 """
-function read_data(filepath::String)::Tuple{Vector{String}, DataFrame}
+function read_data(filepath::String)::Tuple{Vector{String},DataFrame}
     _, ext = splitext(basename(filepath))
 
     if ext in [".sav", ".dta", ".sas7bdat", ".xpt"]
