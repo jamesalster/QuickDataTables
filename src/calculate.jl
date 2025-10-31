@@ -7,7 +7,8 @@ function calculate_single_break(
         t::RowVariable{T}, 
         crossbreak::Pair{Symbol, OrderedDict{Symbol, BitVector}}, 
         method::Symbol; #population, n, population_pct, n_pct, sigtest
-        no_breaks::Bool = false
+        no_breaks::Bool = false,
+        sigtest_correction::Bool = true
     )::DataFrame where T
 
     break_name = first(crossbreak)
@@ -88,7 +89,7 @@ function calculate_single_break(
 
     #Sigtest the df if necessary
     if method === :sigtest
-        out_df = get_sig_differences_categorical(out_df)
+        out_df = get_sig_differences_categorical(out_df; correction=sigtest_correction)
     end
 
     #Add the other columns we need
@@ -104,7 +105,8 @@ end
 function calculate_row(
         t::RowVariable{T}, 
         crossbreak::CrossBreak, 
-        method::Symbol)::DataFrame where T
+        method::Symbol;
+        sigtest_correction::Bool=true)::DataFrame where T
 
     single_breaks = Vector{DataFrame}()
 
@@ -112,10 +114,10 @@ function calculate_row(
 
     #First, do Total column 
     if T <: Union{Number, Missing} && method === :sigtest #special numeric sigtest handling
-        total_col = calculate_break_numeric_sigtest(t, first(crossbreak.breaks); no_breaks = true)
+        total_col = calculate_break_numeric_sigtest(t, first(crossbreak.breaks); no_breaks = true, sigtest_correction=sigtest_correction)
     else
         #doesn't matter which crossbreak we pass
-        total_col = calculate_single_break(t, first(crossbreak.breaks), method; no_breaks = true)
+        total_col = calculate_single_break(t, first(crossbreak.breaks), method; no_breaks = true, sigtest_correction=sigtest_correction)
     end
 
     push!(single_breaks, total_col)
@@ -125,9 +127,9 @@ function calculate_row(
     #Loop over making single break tables
     for break_dict in crossbreak.breaks
         if T <: Union{Number, Missing} && method === :sigtest
-            tab = calculate_break_numeric_sigtest(t, break_dict)
+            tab = calculate_break_numeric_sigtest(t, break_dict; sigtest_correction=sigtest_correction)
         else
-            tab = calculate_single_break(t, break_dict, method)
+            tab = calculate_single_break(t, break_dict, method; sigtest_correction=sigtest_correction)
         end
         push!(single_breaks, tab)
     end
@@ -152,7 +154,8 @@ end
 function calculate_break_numeric_sigtest(
         t::RowVariable, 
         crossbreak::Pair{Symbol, OrderedDict{Symbol, BitVector}}; 
-        no_breaks::Bool = false
+        no_breaks::Bool = false,
+        sigtest_correction::Bool = true
     )::DataFrame
 
     break_name = first(crossbreak)
@@ -175,7 +178,7 @@ function calculate_break_numeric_sigtest(
             push!(colnames, "$(break_name): $(lvl)")
         end
 
-        sigtest_results = get_sig_differences_numeric(lvl_values)
+        sigtest_results = get_sig_differences_numeric(lvl_values; correction=sigtest_correction)
         out_df = DataFrame(permutedims(sigtest_results), colnames)
     end
 

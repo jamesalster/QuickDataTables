@@ -10,7 +10,8 @@
         categorical_methods::Vector{Symbol} = [:population],
         numeric_methods::Vector{Symbol} = [:mean, :sd],
         response_options_to_drop::Vector{String} = ["NotSelected"],
-        max_options::Int = 25
+        max_options::Int = 25,
+        bonferroni_correction::Bool = true
     ) -> DataFrame
 
 Creates analysis tables from survey data with crossbreaks (subgroups).
@@ -24,6 +25,7 @@ Creates analysis tables from survey data with crossbreaks (subgroups).
 - `numeric_methods`: Statistics to calculate for numeric variables (e.g., [:mean, :sd, :median])
 - `response_options_to_drop`: Response values to exclude from results (e.g., "NotSelected")
 - `max_options`: Skip variables with more than this many unique values
+- `bonferroni_correction`: Reduce the p-threshold on significance tests by the number of comparisons to avoid false positives
 
 See readme for a full list of available methods.
 
@@ -50,7 +52,8 @@ function make_data_tables(;
         categorical_methods::Vector{Symbol} = [:population_pct],
         numeric_methods::Vector{Symbol} = [:mean, :sd],
         response_options_to_drop::Vector{String} = ["NotSelected"],
-        max_options::Int = 25
+        max_options::Int = 25,
+        bonferroni_correction::Bool=true
     )
 
     #Read input data if not already, and get labels
@@ -121,7 +124,7 @@ function make_data_tables(;
     ## Make the 'tables' for population and sample n 
     all_row = RowVariable(fill("all", length(weights)), "Whole Sample", weights)
     for method in [:n, :population]
-        all_table = calculate_row(all_row, crossbreak, method)
+        all_table = calculate_row(all_row, crossbreak, method; sigtest_correction=bonferroni_correction)
         push!(tables, all_table)
     end
     
@@ -163,7 +166,7 @@ function make_data_tables(;
 
             for method in categorical_methods
                 #Calculate table and append to list, once for each method
-                row_df = calculate_row(row_table, crossbreak, method)
+                row_df = calculate_row(row_table, crossbreak, method; sigtest_correction=bonferroni_correction)
                 push!(tables, row_df)
                 
                 ### Auto NETs handled here, categorical only ###
@@ -184,7 +187,8 @@ function make_data_tables(;
                         NET_rowtable = RowVariable(new_values, new_name, row_table.weight; order = value_order)
 
                         #Calculate the table and append
-                        row_df = calculate_row(NET_rowtable, crossbreak, method)
+                        row_df = calculate_row(NET_rowtable, crossbreak, method; sigtest_correction=bonferroni_correction)
+
                         push!(tables, row_df)
 
                         break #Only one auto NET per variable
@@ -197,7 +201,7 @@ function make_data_tables(;
         elseif typeof(row_table) <: RowVariable{Union{Missing, Float64}}
 
             for method in numeric_methods
-                row_df = calculate_row(row_table, crossbreak, method)
+                row_df = calculate_row(row_table, crossbreak, method; sigtest_correction=bonferroni_correction)
                 push!(tables, row_df)
             end
 

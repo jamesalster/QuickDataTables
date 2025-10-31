@@ -6,7 +6,7 @@
 #Returns a dataframe
 #Needs whole dataframe so it knows population totals
 
-function get_sig_differences_categorical(df::DataFrame)::DataFrame
+function get_sig_differences_categorical(df::DataFrame; correction::Bool=true)::DataFrame
 
     #Iterate over dataframe rows
     in_array = Matrix(df)
@@ -63,7 +63,7 @@ function get_sig_differences_categorical(df::DataFrame)::DataFrame
 
                     # Record result
                     # Bonferroni correction
-                    comparisons = cols * (cols-1) / 2
+                    comparisons = correction ? cols * (cols-1) / 2 : 1
                     #comparisons = 1
                     if pval < (0.01 / comparisons)
                         push!(sig_differences[i], 'A' + j - 1)
@@ -89,7 +89,7 @@ end
 #### Returns a vector of string comparisons
 #### These are assembled back into the dataframe in calculate.jl in calculate_break_numeric_sigtest() 
 
-function get_sig_differences_numeric(row_values::Vector{Vector{Float64}})::Vector{String}
+function get_sig_differences_numeric(row_values::Vector{Vector{Float64}}; correction::Bool=true)::Vector{String}
 
     #Iterate over dataframe rows
     out_array = Vector{String}(undef, length(row_values))
@@ -114,7 +114,7 @@ function get_sig_differences_numeric(row_values::Vector{Vector{Float64}})::Vecto
 
             # Record result
             # Bonferroni correction
-            comparisons = cols * (cols-1) / 2
+            comparisons = correction ? cols * (cols-1) / 2 : 1
             if pval < (0.01 / comparisons)
                 push!(sig_differences[j], 'A' + i - 1)
                 push!(sig_differences[i], 'A' + j - 1)
