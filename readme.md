@@ -22,6 +22,7 @@ Automatic NET ('SUM') columns (as defined in `assets/auto_NETs.toml`) are added 
 - `response_options_to_drop`: Response values to exclude from results (e.g., "NotSelected")
 - `max_options`: Skip variables with more than this many unique values
 - `pct_for_categorical`: When true, shows categorical data as percentages
+- `bonferroni_correction`: When true (default), penalise significance tests for multiple comparisons (see below).
 
 **NB** that spss variable labels are read and placed in the tables only if input_data is provided as a string. Otherwise dataframe column names are used.
 
@@ -47,7 +48,7 @@ These are the methods available to be passed to the `categorical_methods` and `n
 
 This is done with column comparisons, where a capital letter indicates `p <0.01` and a small letter `p < 0.05`. For categorical variables, these are Two-Sample Z Tests, and for numeric variables, (approximate) Mann-Whitney U tests. 
 
-Bonferroni correction is applied to significance tests, dividing the p-threshold by the number of comparisons tested.
+[Bonferroni correction](https://en.wikipedia.org/wiki/Bonferroni_correction) is applied to significance tests by default, dividing the p-threshold by the number of comparisons tested. This can be toggled off.
 
 Significance tests will not be applied where there are less than 30 individuals.
 
