@@ -35,6 +35,12 @@
 "Somewhat oppose" = "NET_oppose"
 "Strongly oppose" = "NET_oppose"
 
+[support_options2]
+"Strongly support" = "NET_support"
+"Tend to support" = "NET_support"
+"Tend to oppose" = "NET_oppose"
+"Strongly oppose" = "NET_oppose"
+
 [likely_options]
 "Very likely" = "NET_likely"
 "Somewhat likely" = "NET_likely"
