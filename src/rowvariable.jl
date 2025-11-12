@@ -13,7 +13,7 @@ end
 
 #Table constructor - this is where we define table properties (in terms of the row)
 function RowVariable(
-    df::DataFrame, row_var::Symbol, row_label::String, weights::Vector{Float64}
+    df::DataFrame, row_var::Symbol, row_label::String, weights::Vector{Float64}; exclude_values::Vector{String}=[]
 )::RowVariable
     row_values = df[!, row_var]
 
@@ -26,12 +26,18 @@ function RowVariable(
         row_labels = string.(values(sort(getvaluelabels(row_values))))
         row_values = collect(valuelabels(row_values))
         row_values = convert(Vector{Union{Missing,String}}, row_values)
+        # drop excluded values
+        replace!(x -> x in exclude_values ? missing : x, row_values)
+        filter!(x -> x ∉ exclude_values, row_labels)
         #Add missing lables, if required
         union!(row_labels, string.(row_values))
     else
         #Alphabetical for normal strings
         row_labels = sort(unique(row_values))
         row_values = convert(Vector{Union{Missing,String}}, row_values)
+        # drop excluded values
+        replace!(x -> x in exclude_values ? missing : x, row_values)
+        filter!(x -> x ∉ exclude_values, row_labels)
     end
 
     #Define 'type' of the variable
@@ -53,7 +59,7 @@ function RowVariable(
     row_values::Vector,
     row_label::String,
     weights::Vector{Float64};
-    order::Vector{String}=sort(unique(row_values)),
+    order::Vector{String}=sort(unique(row_values))
 )::RowVariable
 
     #Define 'type' of the variable

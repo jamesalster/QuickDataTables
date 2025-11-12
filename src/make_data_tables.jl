@@ -51,7 +51,7 @@ function make_data_tables(;
     rows::Union{Nothing,Vector{Symbol}}=nothing,
     categorical_methods::Vector{Symbol}=[:population_pct],
     numeric_methods::Vector{Symbol}=[:mean, :sd],
-    response_options_to_drop::Vector{String}=["NotSelected"],
+    response_options_to_drop::Vector{String}=[""],
     max_options::Int=25,
     bonferroni_correction::Bool=true,
 )
@@ -164,7 +164,8 @@ function make_data_tables(;
 
         #Init variable info object using dataframe constructor
         row_table = RowVariable(
-            input_data, row_var, get(data_labels_dict, row_var, string(row_var)), weights
+            input_data, row_var, get(data_labels_dict, row_var, string(row_var)), weights;
+            exclude_values = response_options_to_drop
         )
 
         #Check variable type
@@ -229,8 +230,8 @@ function make_data_tables(;
     #Concatenate tables
     all_tables = vcat(tables...)
 
-    #Filter out rows to drop
-    filter!(row -> .!in.(row._ROWLABELS, Ref(response_options_to_drop)), all_tables)
+    #Filter out rows to drop - no longer needed
+    # filter!(row -> .!in.(row._ROWLABELS, Ref(response_options_to_drop)), all_tables)
 
     #Reorder columns
     label_cols = ["_ROWVARIABLE", "_ROWLABELS", "_VARIABLE_N", "_STATISTIC"]
