@@ -9,7 +9,8 @@
         rows::Union{Nothing, Vector{Symbol}} = nothing,
         categorical_methods::Vector{Symbol} = [:population],
         numeric_methods::Vector{Symbol} = [:mean, :sd],
-        response_options_to_drop::Vector{String} = ["NotSelected"],
+        response_options_to_drop::Vector{String} = [""],
+        response_options_to_hide::Vector{String} = [""],
         max_options::Int = 25,
         bonferroni_correction::Bool = true
     ) -> DataFrame
@@ -23,7 +24,8 @@ Creates analysis tables from survey data with crossbreaks (subgroups).
 - `rows`: Variables to analyze (default value of nothing means do all columns)
 - `categorical_methods`: Statistics to calculate for categorical variables (e.g., [:population_pct, :n, :sigtest])
 - `numeric_methods`: Statistics to calculate for numeric variables (e.g., [:mean, :sd, :median])
-- `response_options_to_drop`: Response values to exclude from results (e.g., "NotSelected")
+- `response_options_to_drop`: Response values to exclude from calculations (e.g., "missing")
+- `response_options_to_hide`: Response values to exclude from results (e.g., "NotSelected")
 - `max_options`: Skip variables with more than this many unique values
 - `bonferroni_correction`: Reduce the p-threshold on significance tests by the number of comparisons to avoid false positives
 
@@ -52,6 +54,7 @@ function make_data_tables(;
     categorical_methods::Vector{Symbol}=[:population_pct],
     numeric_methods::Vector{Symbol}=[:mean, :sd],
     response_options_to_drop::Vector{String}=[""],
+    response_options_to_hide::Vector{String}=[""],
     max_options::Int=25,
     bonferroni_correction::Bool=true,
 )
@@ -230,8 +233,8 @@ function make_data_tables(;
     #Concatenate tables
     all_tables = vcat(tables...)
 
-    #Filter out rows to drop - no longer needed
-    # filter!(row -> .!in.(row._ROWLABELS, Ref(response_options_to_drop)), all_tables)
+    #Filter out rows to hide
+    filter!(row -> .!in.(row._ROWLABELS, Ref(response_options_to_hide)), all_tables)
 
     #Reorder columns
     label_cols = ["_ROWVARIABLE", "_ROWLABELS", "_VARIABLE_N", "_STATISTIC"]

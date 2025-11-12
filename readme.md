@@ -19,9 +19,9 @@ Automatic NET ('SUM') columns (as defined in `assets/auto_NETs.toml`) are added 
 - `rows`: Variables to analyze (default value of nothing means do all columns)
 - `categorical_methods`: Statistics to calculate for categorical variables (e.g., [:population])
 - `numeric_methods`: Statistics to calculate for numeric variables (e.g., [:mean, :sd])
-- `response_options_to_drop`: Response values to exclude from results (e.g., "NotSelected")
+- `response_options_to_drop`: Response values to exclude from calculations (e.g., "missing")
+- `response_options_to_hide`: Response values to exclude from results (e.g., "NotSelected")
 - `max_options`: Skip variables with more than this many unique values
-- `pct_for_categorical`: When true, shows categorical data as percentages
 - `bonferroni_correction`: When true (default), penalise significance tests for multiple comparisons (see below).
 
 **NB** that spss variable labels are read and placed in the tables only if input_data is provided as a string. Otherwise dataframe column names are used.
