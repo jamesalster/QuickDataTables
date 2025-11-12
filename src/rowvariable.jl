@@ -26,17 +26,17 @@ function RowVariable(
         row_labels = string.(values(sort(getvaluelabels(row_values))))
         row_values = collect(valuelabels(row_values))
         row_values = convert(Vector{Union{Missing,String}}, row_values)
-        # drop excluded values
-        replace!(x -> x in exclude_values ? missing : x, row_values)
-        filter!(x -> x ∉ exclude_values, row_labels)
         #Add missing lables, if required
         union!(row_labels, string.(row_values))
+        # drop excluded values
+        replace!(x -> x ∈ exclude_values ? missing : x, row_values)
+        filter!(x -> x ∉ exclude_values, row_labels)
     else
         #Alphabetical for normal strings
         row_labels = sort(unique(row_values))
         row_values = convert(Vector{Union{Missing,String}}, row_values)
         # drop excluded values
-        replace!(x -> x in exclude_values ? missing : x, row_values)
+        replace!(x -> x ∈ exclude_values ? missing : x, row_values)
         filter!(x -> x ∉ exclude_values, row_labels)
     end
 
