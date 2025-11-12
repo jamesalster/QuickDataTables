@@ -1,9 +1,35 @@
 
-[agree_1]
+[agree_options1]
 "Strongly agree" = "NET_Agree"
 "Tend to agree" = "NET_Agree"
 "Tend to disagree" = "NET_Disagree"
 "Strongly disagree" = "NET_Disagree"
+
+[agree_options2]
+"Strongly agree" = "NET_agree"
+"Somewhat agree" = "NET_agree"
+"Somewhat disagree" = "NET_disagree"
+"Strongly disagree" = "NET_disagree"
+
+[agree_options3]
+"Strongly agree" = "NET_agree"
+"Agree" = "NET_agree"
+"Disagree" = "NET_disagree"
+"Strongly disagree" = "NET_disagree"
+
+[agree_options4]
+"Agree   strongly" = "NET_agree"
+#"Agree   strongly" = "NET_agree"
+#"Agree strongly" = "NET_agree"
+"Agree" = "NET_agree"
+"Disagree" = "NET_disagree"
+"Disagree strongly" = "NET_disagree"
+
+[agree_options5]
+"Agree strongly" = "NET_agree"
+"Agree" = "NET_agree"
+"Disagree" = "NET_disagree"
+"Disagree strongly" = "NET_disagree"
 
 [favorable_options]
 "Very favorable" = "NET_favorable"
@@ -16,18 +42,6 @@
 "Somewhat favourable" = "NET_favourable"
 "Somewhat unfavourable" = "NET_unfavourable"
 "Very unfavourable" = "NET_unfavourable"
-
-[agree_options]
-"Strongly agree" = "NET_agree"
-"Somewhat agree" = "NET_agree"
-"Somewhat disagree" = "NET_disagree"
-"Strongly disagree" = "NET_disagree"
-
-[agree_options2]
-"Strongly agree" = "NET_agree"
-"Agree" = "NET_agree"
-"Disagree" = "NET_disagree"
-"Strongly disagree" = "NET_disagree"
 
 [support_options]
 "Strongly support" = "NET_support"
@@ -46,3 +60,9 @@
 "Somewhat likely" = "NET_likely"
 "Somewhat unlikely" = "NET_unlikely"
 "Very unlikely" = "NET_unlikely"
+
+[should_options]
+"Definitely should" = "NET_should"
+"Probably should" = "NET_should"
+"Probably should not" = "NET_should_not"
+"Definitely should not" = "NET_should_not"
