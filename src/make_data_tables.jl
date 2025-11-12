@@ -187,7 +187,14 @@ function make_data_tables(;
                     if all(in(row_table.row_labels), keys(NET_dict))
 
                         #if so, make new values and name, and define the order
-                        new_values = get.(Ref(NET_dict), row_table.row_values, "NET_Other")
+                        new_values = similar(row_table.row_values)
+                        for (i, x) in enumerate(row_table.row_values)
+                            if ismissing(x)
+                                new_values[i] = missing
+                            else
+                                new_values[i] = get(NET_dict, x, "NET_Other")
+                            end
+                        end
                         new_name = "$(row_table.row_var)_NET"
                         value_order = [unique(values(NET_dict))..., "NET_Other"]
                         #like this so it doesn't break if there's no NET_other

@@ -19,8 +19,6 @@
 
 [agree_options4]
 "Agree   strongly" = "NET_agree"
-#"Agree   strongly" = "NET_agree"
-#"Agree strongly" = "NET_agree"
 "Agree" = "NET_agree"
 "Disagree" = "NET_disagree"
 "Disagree strongly" = "NET_disagree"
