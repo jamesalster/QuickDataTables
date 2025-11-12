@@ -281,8 +281,10 @@ function make_data_tables(;
             col_rebased = ifelse.(isnan.(col_rebased_raw) .| isinf.(col_rebased_raw), missing, col_rebased_raw)
             col_rebased = round.(Union{Int64,Missing}, col_rebased)
             #reassemble column of correct type
-            new_col = Vector{Union{Int64,Missing}}(missing, size(all_tables, 1))
+            new_col = Vector{Union{Int64,String,Missing}}(missing, size(all_tables, 1))
             new_col[idx] = col_rebased
+            # add sigtest results back in
+            new_col[.!idx] = all_tables[.!idx, col]
             #add back into dataframe
             all_tables[!, newname] = new_col
         catch e
