@@ -274,7 +274,7 @@ function make_data_tables(;
         try
             #calculate ignoring sigtest rows
             col_rebased_raw = all_tables[idx, col] ./ all_tables[idx, :Total] .* 100
-            col_rebased = ifelse.(isnan.(col_rebased_raw), missing, col_rebased_raw)
+            col_rebased = ifelse.(isnan.(col_rebased_raw) .| isinf.(col_rebased_raw), missing, col_rebased_raw)
             col_rebased = round.(Union{Int64,Missing}, col_rebased)
             #reassemble column of correct type
             new_col = Vector{Union{Int64,Missing}}(missing, size(all_tables, 1))
